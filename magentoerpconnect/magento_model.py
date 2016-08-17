@@ -23,7 +23,7 @@
 import logging
 from datetime import datetime, timedelta
 from openerp import models, fields, api, _
-from openerp.exceptions import Warning
+from openerp.exceptions import Warning as UserError
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.connector import ConnectorUnit
 from openerp.addons.connector.unit.mapper import mapping, ImportMapper
@@ -210,8 +210,7 @@ class MagentoBackend(models.Model):
                 {'name': 'Taxable Goods', 'magento_id': 2},
                 {'name': 'Shipping', 'magento_id': 4},
                 ]
-            session = ConnectorSession(self.env.cr, self.env.uid,
-                                       context=self.env.context)
+            session = ConnectorSession.from_env(self.env)
             for backend in self:
                 for model in ('magento.website',
                               'magento.store',
@@ -232,9 +231,10 @@ class MagentoBackend(models.Model):
             return True
         except Exception as e:
             _logger.error(e.message, exc_info=True)
-            raise Warning(
-                _(u"Check your configuration, we can't get the data.\
-                Here is the error:\n%s") % str(e).decode('utf-8', 'ignore'))
+            raise UserError(
+                _(u"Check your configuration, we can't get the data. "
+                  u"Here is the error:\n%s") %
+                str(e).decode('utf-8', 'ignore'))
 
     @api.multi
     def import_partners(self):
