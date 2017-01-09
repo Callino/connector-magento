@@ -747,5 +747,6 @@ class StoreAddCheckpoint(ConnectorUnit):
                        binding_id,
                        self.backend_record.id)
 
+
 # backward compatibility
 StoreViewAddCheckpoint = magento(StoreAddCheckpoint)
