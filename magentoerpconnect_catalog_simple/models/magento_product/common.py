@@ -35,7 +35,8 @@ class MagentoProductProduct(models.Model):
                                  "is delete from Magento. This allow to remove"
                                  " product from Magento and so to increase the"
                                  " perf on Magento side")
-
+    url_key = fields.Char()
+    
     @api.multi
     def write(self, vals):
         if vals.get('active') is True:

@@ -36,6 +36,9 @@ import logging
 _logger = logging.getLogger(__name__)
 import openerp.addons.magentoerpconnect.consumer as magentoerpconnect
 from openerp.addons.magentoerpconnect.product import ProductInventoryExporter
+from openerp.addons.connector.unit.synchronizer import (Importer,
+                                                        Exporter,
+                                                        )
 
 
 @on_record_write(model_names=[
@@ -91,6 +94,41 @@ class AttributeSetExportMapper(ExportMapper):
         return {'name': record.name,
                 'parent_name': parent_set_id}
 
+@magento
+class CatalogImageExporter(Exporter):
+    """ Import images for a record.
+
+    Usually called from importers, in ``_after_import``.
+    For instance from the products importer.
+    """
+
+    _model_name = ['magento.product.product',]
+    
+    def run(self, magento_id, binding_id,create_mode=False):
+        self.magento_id = magento_id
+        if not create_mode:
+            images = self.backend_adapter.get_images(self.magento_id)
+            for image in images:
+                self.backend_adapter.remove_image(self.magento_id,image['file'])
+        def get_mime(filename):
+            if 'jpg' in filename:
+                return 'image/jpeg'
+            if 'png' in filename:
+                return 'image/png'
+            if 'gif' in filename:
+                return 'image/gif'
+        product=self.model.search([('id','=',binding_id)])
+        for image in product.image_ids:
+            self.backend_adapter.create_image(self.magento_id,{
+                'file': {'content': image.image_main,
+                         'mime': get_mime(image.filename)
+                    },
+                'label': image.name,
+                'position': image.sequence
+                })
+        
+        
+        
 
 @on_record_create(model_names=[
     'magento.attribute.set',
@@ -114,6 +152,11 @@ class ProductProductExportMapper(ExportMapper):
                 'type': record.product_type,
                 'visibility': record.visibility,
                 'product_type': record.product_type,
+                'url_key' : record.url_key,
+                'meta_keyword': record.website_meta_keywords,
+                'meta_title': record.website_meta_title,
+                'meta_description': record.website_meta_description,
+                
                 }
 
     @mapping
@@ -226,6 +269,9 @@ class ProductProductExporter(MagentoExporter):
             inventory_exporter = self.unit_for(ProductInventoryExporter)
             inventory_exporter.run(self.binding_id, ['magento_qty'])
 
+        image_exporter = self.unit_for(CatalogImageExporter)
+        image_exporter.run(self.magento_id,self.binding_id,self.create_mode)
+        
 # @job(default_channel='root.magento')
 # @related_action(action=unwrap_binding)
 # def export_product(session, model_name, record_id):

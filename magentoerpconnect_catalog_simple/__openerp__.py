@@ -20,6 +20,8 @@
  'version': '8.0.1.0',
  'category': 'Connector',
  'depends': ['magentoerpconnect',
+             'product_multi_image',
+             'website_sale'
              ],
  'author': "Camptocamp,Odoo Community Association (OCA)",
  'license': 'AGPL-3',

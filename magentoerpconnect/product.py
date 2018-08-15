@@ -400,6 +400,19 @@ class ProductProductAdapter(GenericAdapter):
         return self._call('oerp_cataloginventory_stock_item.update',
                           [int(id), data])
 
+    def create_image(self, id, data, storeview_id=None):
+        return self._call('product_media.create',
+                          [int(id), data, storeview_id, 'id'])
+        
+    def remove_image(self, id, image_name, storeview_id=None):
+        return self._call('product_media.remove',
+                          [int(id), image_name, storeview_id, 'id'])
+        
+    def update_image(self, id, image_name, data, storeview_id=None):
+        return self._call('product_media.update',
+                          [int(id), image_name, data, storeview_id, 'id'])
+
+
 
 @magento
 class ProductBatchImporter(DelayedBatchImporter):
