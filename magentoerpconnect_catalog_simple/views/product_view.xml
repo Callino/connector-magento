@@ -32,6 +32,7 @@
             <field name="arch" type="xml">
                 <field name="website_ids" position="after">
                     <field name="active"/>
+                    <field name="url_key"/>
                 </field>
                 <xpath expr="//field[@name='created_at']" position="attributes">
                     <attribute name="readonly">0</attribute>
