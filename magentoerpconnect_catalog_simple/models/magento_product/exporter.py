@@ -143,7 +143,7 @@ class ProductProductExportMapper(ExportMapper):
     _model_name = 'magento.product.product'
 
     @mapping
-    def all(self, record):
+    def all(self, record):        
         return {'name': record.name,
                 'description': record.description,
                 'weight': record.weight,
@@ -159,6 +159,11 @@ class ProductProductExportMapper(ExportMapper):
                 
                 }
 
+    @mapping
+    def user_data(self, record):        
+        return { f[3:]: getattr(record, f )  for f in record._fields if f.startswith('x__') }
+        
+        
     @mapping
     def sku(self, record):
         sku = record.default_code
