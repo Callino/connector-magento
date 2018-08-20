@@ -618,6 +618,10 @@ class ProductImportMapper(ImportMapper):
               ]
 
     @mapping
+    def user_data(self,record):
+        return { f : record.get(f[3:]) for f in self.model._fields if f.startswith('x__') }
+            
+    @mapping
     def map_attribute_set(self, record):
         binder = self.binder_for(model='magento.attribute.set')
         binding_id = binder.to_openerp(record['set'])
