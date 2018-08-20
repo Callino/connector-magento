@@ -105,6 +105,9 @@
                                         <field name="import_products_from_date"
                                             class="oe_inline"
                                             nolabel="1"/>
+                                        <field name="import_products_filter"
+                                            class="oe_inline"
+                                            nolabel="1"/>
                                     </div>
                                     <button name="import_product_product"
                                         type="object"

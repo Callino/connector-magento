@@ -149,6 +149,9 @@ class MagentoBackend(models.Model):
     import_products_from_date = fields.Datetime(
         string='Import products from date',
     )
+    
+    import_products_filter = fields.Char(string='like filter for sku|description')
+    
     import_categories_from_date = fields.Datetime(
         string='Import categories from date',
     )
@@ -264,7 +267,7 @@ class MagentoBackend(models.Model):
         return True
 
     @api.multi
-    def _import_from_date(self, model, from_date_field):
+    def _import_from_date(self, model, from_date_field,filter=False):
         session = ConnectorSession(self.env.cr, self.env.uid,
                                    context=self.env.context)
         import_start_time = datetime.now()
@@ -275,10 +278,17 @@ class MagentoBackend(models.Model):
                 from_date = fields.Datetime.from_string(from_date)
             else:
                 from_date = None
-            import_batch.delay(session, model,
-                               backend.id,
-                               filters={'from_date': from_date,
-                                        'to_date': import_start_time})
+            if filter:
+                import_batch.delay(session, model,
+                                   backend.id,
+                                   filters={'from_date': from_date,
+                                            'to_date': import_start_time,
+                                            'sku': {'like': filter }})
+            else:
+                import_batch.delay(session, model,
+                                   backend.id,
+                                   filters={'from_date': from_date,
+                                            'to_date': import_start_time})
         # Records from Magento are imported based on their `created_at`
         # date.  This date is set on Magento at the beginning of a
         # transaction, so if the import is run between the beginning and
@@ -301,7 +311,9 @@ class MagentoBackend(models.Model):
     @api.multi
     def import_product_product(self):
         self._import_from_date('magento.product.product',
-                               'import_products_from_date')
+                               'import_products_from_date',
+                               self.import_products_filter
+                               )
         return True
 
     @api.multi
