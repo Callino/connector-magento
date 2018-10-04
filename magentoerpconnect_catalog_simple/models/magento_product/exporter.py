@@ -206,9 +206,9 @@ class ProductProductExportMapper(ExportMapper):
 
     @mapping
     def tax_class(self, record):
-        binder = self.get_binder_for_model('magento.tax.class')
-        tax_class_id = binder.to_backend(record.tax_class_id.id, wrap=True)
-        return {'tax_class_id': str(tax_class_id)}
+#         binder = self.get_binder_for_model('magento.tax.class')
+#         tax_class_id = binder.to_backend(record.tax_class_id.id, wrap=True)
+        return {'tax_class_id': str(record.tax_class_id)}
 
     @mapping
     def category(self, record):

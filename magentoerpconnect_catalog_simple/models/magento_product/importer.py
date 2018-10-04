@@ -35,6 +35,11 @@ class ProductImportMapper(ProductImportMapper):
         ('meta_title','website_meta_title'),
         ('url_key','url_key'),
         ('meta_description','website_meta_description'),
-        ('meta_keyword','website_meta_keywords'),        
+        ('meta_keyword','website_meta_keywords'),  
+        ('special_price','special_price'),
+        ('special_from_date','special_from_date'),
+        ('special_to_date','special_to_date'),
+        ('special_to_date','special_to_date'),
+        ('special_price_active','special_price_active')
         ]
 

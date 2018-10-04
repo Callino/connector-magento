@@ -61,7 +61,7 @@ def chunks(items, length):
         yield items[index:index + length]
 
 
-class MagentoTaxClass(models.Model):
+class MagentoClass(models.Model):
     _name = 'magento.tax.class'
     _inherit = 'magento.binding'
     _description = 'Magento Tax Class'
@@ -177,22 +177,9 @@ class MagentoProductProduct(models.Model):
             # ('bundle', 'Bundle Product'),
         ]
 
-    @api.model
-    def get_default_magento_tax(self):
-        mag_tax_obj = self.env['magento.tax.class']
-        tax_id = False
-        if self.backend_id:
-            tax_id = mag_tax_obj.search(
-                [('backend_id', '=', self.backend_id.id)])[0]
-        else:
-            tax_id = mag_tax_obj.search([])[0]
-        return tax_id
 
-    tax_class_id = fields.Many2one(comodel_name='magento.tax.class',
-                                   string='Tax class',
-                                   required=True,
-                                   ondelete='restrict',
-                                   default=get_default_magento_tax)
+    tax_class_id = fields.Integer()
+
     openerp_id = fields.Many2one(comodel_name='product.product',
                                  string='Product',
                                  required=True,
@@ -629,9 +616,9 @@ class ProductImportMapper(ImportMapper):
 
     @mapping
     def map_tax_class(self, record):
-        binder = self.binder_for(model='magento.tax.class')
-        binding_id = binder.to_openerp(record['tax_class_id'])
-        return {'tax_class_id': binding_id}
+#         binder = self.binder_for(model='magento.tax.class')
+#         binding_id = binder.to_openerp(record['tax_class_id'])
+        return {'tax_class_id': record['tax_class_id']}
 
     @mapping
     def is_active(self, record):

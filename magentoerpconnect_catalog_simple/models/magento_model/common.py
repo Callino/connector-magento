@@ -29,5 +29,4 @@ class MagentoBackend(models.Model):
         help="Tic that box if you want to automatically export the"
              "product when it's available for sell (sale_ok is tic)"
         )
-    default_mag_tax_id = fields.Many2one('magento.tax.class',
-                                         string='Default tax')
+    default_mag_tax_id = fields.Integer()

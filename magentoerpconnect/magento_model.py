@@ -207,12 +207,12 @@ class MagentoBackend(models.Model):
     @api.multi
     def synchronize_metadata(self):
         try:
-            mag_tax_class_obj = self.env['magento.tax.class']
-            default_tax_list = [
-                {'name': 'default', 'magento_id': 1},
-                {'name': 'Taxable Goods', 'magento_id': 2},
-                {'name': 'Shipping', 'magento_id': 4},
-                ]
+#             mag_tax_class_obj = self.env['magento.tax.class']
+#             default_tax_list = [
+#                 {'name': 'default', 'magento_id': 1},
+#                 {'name': 'Taxable Goods', 'magento_id': 2},
+#                 {'name': 'Shipping', 'magento_id': 4},
+#                 ]
             session = ConnectorSession.from_env(self.env)
             for backend in self:
                 for model in ('magento.website',
@@ -225,11 +225,11 @@ class MagentoBackend(models.Model):
                     import_batch(session, model, backend.id)
     
                 # create magento.tax.class records as we don't import them
-                if not backend.tax_imported:
-                    for tax_dict in default_tax_list:
-                        tax_dict.update(backend_id=backend.id)
-                        mag_tax_class_obj.create(tax_dict)
-                    backend.tax_imported = True
+#                 if not backend.tax_imported:
+#                     for tax_dict in default_tax_list:
+#                         tax_dict.update(backend_id=backend.id)
+#                         mag_tax_class_obj.create(tax_dict)
+#                     backend.tax_imported = True
     
             return True
         except Exception as e:

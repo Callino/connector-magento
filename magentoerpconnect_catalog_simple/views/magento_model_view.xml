@@ -13,7 +13,8 @@
             </field>
         </record>
         
-        <record id="view_magento_tax_class_form" model="ir.ui.view">
+<!-- 
+<record id="view_magento_tax_class_form" model="ir.ui.view">
             <field name="name">magento.tax.class.form</field>
             <field name="model">magento.tax.class</field>
             <field name="arch" type="xml">
@@ -56,6 +57,7 @@
             parent="magentoerpconnect.menu_magento_root"
             sequence="60"
             action="action_magento_tax_class"/>
+ -->
 
 
         <record id="view_magento_attribute_set_form" model="ir.ui.view">

@@ -36,6 +36,10 @@ class MagentoProductProduct(models.Model):
                                  " product from Magento and so to increase the"
                                  " perf on Magento side")
     url_key = fields.Char()
+    special_price = fields.Float()
+    special_from_date = fields.Date()
+    special_to_date = fields.Date()
+    special_price_active = fields.Boolean()
     
     @api.multi
     def write(self, vals):
@@ -84,7 +88,7 @@ class ProductProduct(models.Model):
             'status': '1',
             'created_at': fields.Date.today(),
             'updated_at': fields.Date.today(),
-            'tax_class_id': bkend_brw.default_mag_tax_id.id
+            'tax_class_id': bkend_brw.default_mag_tax_id
         }
 
     @api.multi
