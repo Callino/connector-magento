@@ -67,7 +67,8 @@ class MagentoBackend(models.Model):
             limit=1)
         return field
 
-    tax_imported = fields.Boolean(default=False)
+#    tax_imported = fields.Boolean(default=False)
+    
     version = fields.Selection(selection='select_versions', required=True)
     location = fields.Char(
         string='Location',
