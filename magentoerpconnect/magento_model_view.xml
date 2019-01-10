@@ -104,7 +104,10 @@
                                         <label string="Import products since" class="oe_inline"/>
                                         <field name="import_products_from_date"
                                             class="oe_inline"
-                                            nolabel="1"/>
+                                            nolabel="1"/>field:
+                                        <field name="import_products_filter_field"
+                                            class="oe_inline"
+                                            nolabel="1"/>filter:
                                         <field name="import_products_filter"
                                             class="oe_inline"
                                             nolabel="1"/>
