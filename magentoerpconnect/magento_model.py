@@ -153,6 +153,7 @@ class MagentoBackend(models.Model):
     
     import_products_filter = fields.Char(string='like filter')
     import_products_filter_field = fields.Char(string='Field in which the like filter',default='sku')
+    import_products_filter_op = fields.Char(string='Comparison operator',default='like')
     
     import_categories_from_date = fields.Datetime(
         string='Import categories from date',
@@ -269,7 +270,7 @@ class MagentoBackend(models.Model):
         return True
 
     @api.multi
-    def _import_from_date(self, model, from_date_field,filter=False, filter_field='sku'):
+    def _import_from_date(self, model, from_date_field,filter=False, filter_field='sku', filter_op='like'):
         session = ConnectorSession(self.env.cr, self.env.uid,
                                    context=self.env.context)
         import_start_time = datetime.now()
@@ -285,7 +286,7 @@ class MagentoBackend(models.Model):
                                    backend.id,
                                    filters={'from_date': from_date,
                                             'to_date': import_start_time,
-                                            filter_field: {'like': filter }})
+                                            filter_field: {filter_op: filter }})
             else:
                 import_batch.delay(session, model,
                                    backend.id,
@@ -315,7 +316,8 @@ class MagentoBackend(models.Model):
         self._import_from_date('magento.product.product',
                                'import_products_from_date',
                                self.import_products_filter,
-                               self.import_products_filter_field or 'sku' 
+                               self.import_products_filter_field or 'sku',
+                               self.import_products_filter_op or 'like'
                                )
         return True
 

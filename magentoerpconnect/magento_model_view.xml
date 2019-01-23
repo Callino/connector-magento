@@ -107,6 +107,9 @@
                                             nolabel="1"/>field:
                                         <field name="import_products_filter_field"
                                             class="oe_inline"
+                                            nolabel="1"/>op:
+                                        <field name="import_products_filter_op"
+                                            class="oe_inline"
                                             nolabel="1"/>filter:
                                         <field name="import_products_filter"
                                             class="oe_inline"
