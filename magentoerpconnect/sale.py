@@ -705,7 +705,7 @@ class SaleOrderImporter(MagentoImporter):
     def _create_payment(self, binding):
         if not binding.payment_method_id.journal_id:
             return
-        amount = self.magento_record.get('payment', {}).get('amount_paid')
+        amount = self.magento_record.get('payment', {}).get('base_amount_paid')
         if amount:
             amount = float(amount)  # magento gives a str
             binding.openerp_id.automatic_payment(amount)
