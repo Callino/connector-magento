@@ -441,8 +441,8 @@ class SaleOrderImportMapper(ImportMapper):
 
     direct = [('increment_id', 'magento_id'),
               ('order_id', 'magento_order_id'),
-              ('grand_total', 'total_amount'),
-              ('tax_amount', 'total_amount_tax'),
+              ('base_grand_total', 'total_amount'),
+              ('base_tax_amount', 'total_amount_tax'),
               (normalize_datetime('created_at'), 'date_order'),
               ('store_id', 'storeview_id'),
               ]
