@@ -164,6 +164,7 @@ class MagentoProductProduct(models.Model):
     _inherit = 'magento.binding'
     _inherits = {'product.product': 'openerp_id'}
     _description = 'Magento Product'
+    _translate = False
 
     @api.model
     def product_type_get(self):
