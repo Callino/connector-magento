@@ -44,7 +44,7 @@ class MagentoProductProduct(models.Model):
     @api.multi
     def write(self, vals):
         if vals.get('active') is True:
-            binding_ids = self.search([('active', '=', False)])
+            binding_ids = self.search([('id','in',self.ids),('active', '=', False)])
             if len(binding_ids) > 0:
                 raise exceptions.Warning(
                     _('You can not reactivate the following binding ids: %s '
