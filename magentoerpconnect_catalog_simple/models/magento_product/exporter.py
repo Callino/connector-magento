@@ -41,9 +41,9 @@ from openerp.addons.connector.unit.synchronizer import (Importer,
                                                         )
 
 
-@on_record_write(model_names=[
-    'magento.product.product',
-])
+# @on_record_write(model_names=[
+#     'magento.product.product',
+# ])
 def delay_export(session, model_name, record_id, vals=None):
     if vals.get('active', True) is False:
         magentoerpconnect.delay_unlink(session, model_name, record_id)
@@ -130,9 +130,9 @@ class CatalogImageExporter(Exporter):
         
         
 
-@on_record_create(model_names=[
-    'magento.attribute.set',
-    ])
+# @on_record_create(model_names=[
+#     'magento.attribute.set',
+#     ])
 def delay_export2(session, model_name, record_id, vals=None):
     magentoerpconnect.delay_export(session, model_name,
                                    record_id, vals=vals)

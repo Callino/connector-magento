@@ -36,28 +36,28 @@ def exclude_fields_from_synchro(model_name, fields):
     return fields
 
 
-@on_record_create(model_names=[
-    'magento.product.product',
-    ])
-@on_record_write(model_names=[
-    'magento.product.product',
-    ])
+# @on_record_create(model_names=[
+#     'magento.product.product',
+#     ])
+# @on_record_write(model_names=[
+#     'magento.product.product',
+#     ])
 def delay_export(session, model_name, record_id, vals=None):
     magentoerpconnect.delay_export(session, model_name,
                                    record_id, vals=vals)
 
 
-@on_record_write(model_names=[
-    'product.product',
-    'product.category',
-    ])
+# @on_record_write(model_names=[
+#     'product.product',
+#     'product.category',
+#     ])
 def delay_export_all_bindings(session, model_name, record_id, vals=None):
     magentoerpconnect.delay_export_all_bindings(session, model_name,
                                                 record_id, vals=vals)
 
 
-@on_record_unlink(model_names=[
-    'magento.product.product',
-    ])
+# @on_record_unlink(model_names=[
+#     'magento.product.product',
+#     ])
 def delay_unlink(session, model_name, record_id):
     magentoerpconnect.delay_unlink(session, model_name, record_id)
