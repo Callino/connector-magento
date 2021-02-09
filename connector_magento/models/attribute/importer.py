@@ -122,7 +122,7 @@ class AttributeImportMapper(Component):
     @mapping
     def create_variant(self, record):
         if not record['frontend_input'] or record['frontend_input'] in ['text', 'date', 'gallery', 'media_image', 'price', 'textarea', 'weight']:
-            return {'create_variant': 'never'}
+            return {'create_variant': 'no_variant'}
         else:
             return {'create_variant': 'always'}
 
