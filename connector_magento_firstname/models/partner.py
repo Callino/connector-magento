@@ -28,3 +28,15 @@ class AddressImportMapper(Component):
         values = {'firstname': ' '.join(parts),
                   'lastname': record['lastname']}
         return values
+
+
+class CompanyImportMapper(Component):
+    _inherit = 'magento.company.import.mapper'
+
+    @mapping
+    def names(self, record):
+        parts = [part for part in (record['firstname'],
+                                   record.get('middlename')) if part]
+        values = {'firstname': ' '.join(parts),
+                  'lastname': record['lastname']}
+        return values
