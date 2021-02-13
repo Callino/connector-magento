@@ -213,7 +213,7 @@ class SaleOrderImportMapper(Component):
             'product_id': self.backend_record.default_gift_product_id.id,
             'price_unit': amount,
             'name': name,
-            'product_uom_qty': 1,
+            'product_uom_qty': -1,
             'tax_id': [(4, tax_id)] if tax_id else None,
         }
         values['order_line'].append((0, 0, line))
