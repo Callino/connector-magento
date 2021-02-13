@@ -38,7 +38,7 @@ class ProductCategoryBatchImporter(Component):
 
             def import_branch(branch):
                 children = branch.pop('children_data', [])
-                importer.run(branch['id'])
+                importer.run(branch['id'], in_batch_import=True)
                 for child in children:
                     import_branch(child)
 
@@ -112,12 +112,18 @@ class ProductCategoryImporter(Component):
                     binding_model._name, external_id
                 )
 
+    def run(self, external_id, **kwargs):
+        self.in_batch_import = kwargs.get("in_batch_import", False)
+        return super(ProductCategoryImporter, self).run(external_id, *kwargs)
+
     def _import_dependencies(self):
         """ Import the dependencies for the record"""
         record = self.magento_record
         # import parent category
         # the root category has a 0 parent_id
-        self._import_dependency(record.get('parent_id'), self.model)
+        if not self.in_batch_import:
+            # In batch import it is not required to check for parent - because it comes from the parent
+            self._import_dependency(record.get('parent_id'), self.model)
 
     def _is_uptodate(self, binding):
         # TODO: Remove for production
@@ -136,7 +142,7 @@ class ProductCategoryImporter(Component):
         pass
 
     def _import_categorie_product_positions(self, binding):
-        product_links = self.backend_adapter.get_assigned_product(self.external_id)
+        product_links = self.backend_adapter.get_assigned_product(binding.external_id)
         _logger.info("Got product links: %s", product_links)
         # [{'sku': 'loden-bezugsstoff-bergen', 'position': 0, 'category_id': '90'}]
         binder = self.binder_for('magento.product.template')
@@ -171,7 +177,7 @@ class ProductCategoryImporter(Component):
         """ Hook called at the end of the import """
         translation_importer = self.component(usage='translation.importer')
         translation_importer.run(self.external_id, binding)
-        self._import_categorie_product_positions(binding)
+        binding.with_delay().sync_from_magento_product_links()
 
 
 class ProductCategoryImportMapper(Component):

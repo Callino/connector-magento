@@ -7,6 +7,9 @@ from odoo.addons.component.core import AbstractComponent, Component
 from odoo.addons.connector.exception import MappingError
 from odoo.addons.connector.components.mapper import mapping, only_create
 from ...components.mapper import normalize_datetime
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class PartnerBatchImporter(Component):
@@ -248,6 +251,16 @@ class PartnerAddressBook(Component):
                     map_record = company_mapper.map_record(magento_record)
                     parent = partner_binding.odoo_id.parent_id
                     values = map_record.values(parent_partner=parent)
+                    # Clean company name here - it happend to include a space - which caused problems with firstname lastname module
+                    if 'company' in values:
+                        values['company'] = values['company'].strip()
+                        if not values['company']:
+                            del values['company']
+                    if 'name' in values:
+                        values['name'] = values['name'].strip()
+                        if not values['name']:
+                            del values['name']
+                    _logger.info("Do write values: %s", values)
                     partner_binding.write(values)
                 else:
                     # for B2C individual customers, merge with the main

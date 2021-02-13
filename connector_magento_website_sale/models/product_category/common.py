@@ -24,7 +24,9 @@ class MagentoProductCategory(models.Model):
         if 'magento_parent_id' in vals:
             # Do Update the public_categ_id parent also here
             for mpc in self:
-                if mpc.magento_parent_id and mpc.magento_parent_id.public_categ_id:
+                if mpc.magento_parent_id and \
+                        mpc.magento_parent_id.public_categ_id and \
+                        mpc.magento_parent_id.public_categ_id.id != mpc.public_categ_id.parent_id.id:
                     _logger.info("Do update public category parent id here")
                     mpc.public_categ_id.parent_id = mpc.magento_parent_id.public_categ_id.id
         return result

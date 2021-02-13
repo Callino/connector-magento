@@ -4,6 +4,9 @@
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class PartnerImportMapper(Component):
@@ -35,8 +38,8 @@ class CompanyImportMapper(Component):
 
     @mapping
     def names(self, record):
-        parts = [part for part in (record['firstname'],
+        parts = [part for part in (record['firstname'].strip(),
                                    record.get('middlename')) if part]
         values = {'firstname': ' '.join(parts),
-                  'lastname': record['lastname']}
+                  'lastname': record['lastname'].strip()}
         return values

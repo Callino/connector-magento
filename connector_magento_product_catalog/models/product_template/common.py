@@ -41,6 +41,18 @@ class MagentoProductTemplate(models.Model):
     @api.multi
     @job(default_channel='root.magento.product_to_magento')
     @related_action(action='related_action_unwrap_binding')
+    def run_light_sync_to_magento(self):
+        self.ensure_one()
+        try:
+            with self.backend_id.work_on(self._name) as work:
+                exporter = work.component(usage='record.exporter')
+                return exporter.run(self, light_sync=True)
+        except MissingError as e:
+            return True
+
+    @api.multi
+    @job(default_channel='root.magento.product_to_magento')
+    @related_action(action='related_action_unwrap_binding')
     def run_sync_to_magento(self):
         self.ensure_one()
         try:

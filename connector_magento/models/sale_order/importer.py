@@ -681,12 +681,12 @@ class SaleOrderImporter(Component):
         self._import_addresses()
 
         for line in record.get('items', []):
-            _logger.debug('line: %s', line)
             field = self.collection.version == '1.7' and 'product_id' or 'sku'
             model = 'magento.product.product'
             if field in line:
                 if 'product_type' in line and line['product_type'] == 'bundle':
                     model = 'magento.product.bundle'
+                _logger.info("Do check dep: %s", line)
                 self._import_dependency(line[field], model)
 
 

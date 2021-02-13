@@ -9,6 +9,7 @@
 			<button name="run_sync_from_magento" position="after">
 				<button name="sync_to_magento" type="object" string="Force Sync Odoo -> Magento" />
 				<button type="object" name="run_sync_to_magento" string="Instead Force Sync Odoo -> Magento" groups="base.group_no_one"/>
+				<button type="object" name="run_light_sync_to_magento" string="Light Sync Odoo -> Magento" groups="base.group_no_one"/>
 			</button>
 			<group name="general" position="inside">
 				<field name="special_price_active"/>

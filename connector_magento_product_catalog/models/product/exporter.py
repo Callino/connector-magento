@@ -22,6 +22,10 @@ class ProductProductExporter(Component):
     _inherit = 'magento.exporter'
     _apply_on = ['magento.product.product']
 
+    def run(self, binding, fields=None, light_sync=False):
+        self.light_sync = light_sync
+        return super(ProductProductExporter, self).run(binding)
+
     def _run(self, fields=None):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding
@@ -451,9 +455,10 @@ class ProductProductExporter(Component):
         :return:
         '''
         _logger.info("AFTEREXPORT: In _after_export at %s", __name__)
-        self._sync_images()
-        self._export_base_image()
-        self._export_stock()
+        if not self.light_sync:
+            self._sync_images()
+            self._export_base_image()
+            self._export_stock()
 
 
 class ProductProductExportMapper(Component):

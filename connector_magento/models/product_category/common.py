@@ -36,7 +36,6 @@ class MagentoProductPosition(models.Model):
 class MagentoProductCategory(models.Model):
     _name = 'magento.product.category'
     _inherit = 'magento.binding'
-    #Don't use _inherits by design https://github.com/wpichler/connector-magento/pull/1#issuecomment-547279470
     _description = 'Magento Product Category'
     _magento_backend_path = 'catalog/category/edit/id'
     _magento_frontend_path = 'catalog/category/view/id'
@@ -70,8 +69,10 @@ class MagentoProductCategory(models.Model):
         if 'magento_parent_id' in vals:
             # Do Update the categ_id parent also here
             for mpc in self:
-                if mpc.magento_parent_id and mpc.magento_parent_id.odoo_id:
-                    _logger.info("Do update public category parent id here")
+                if mpc.magento_parent_id and \
+                        mpc.magento_parent_id.odoo_id and \
+                        mpc.magento_parent_id.odoo_id.id != mpc.odoo_id.parent_id.id:
+                    _logger.info("Do update public category parent id here. Because %s != %s", mpc.magento_parent_id.odoo_id.id, mpc.odoo_id.parent_id.id)
                     mpc.odoo_id.parent_id = mpc.magento_parent_id.odoo_id.id
         return result
 
@@ -80,6 +81,14 @@ class MagentoProductCategory(models.Model):
     def sync_from_magento(self):
         for binding in self:
             binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
+
+    @api.multi
+    @job(default_channel='root.magento')
+    def sync_from_magento_product_links(self):
+        self.ensure_one()
+        with self.backend_id.work_on(self._name) as work:
+            importer = work.component(usage='record.importer')
+            return importer._import_categorie_product_positions(self)
 
     @api.multi
     @job(default_channel='root.magento')

@@ -197,7 +197,8 @@ class ProductTemplateDefinitionExporter(Component):
         """ Export the dependencies for the record"""
         super(ProductTemplateDefinitionExporter, self)._export_dependencies()
         self._create_attribute_lines()
-        self._export_variants()
+        if not self.light_sync:
+            self._export_variants()
         return
 
     def _after_export(self):
@@ -213,7 +214,8 @@ class ProductTemplateDefinitionExporter(Component):
             self.binding.export_product_template_for_storeview(storeview_id=storeview_id)
         '''
 
-    def run(self, binding, fields=None):
+    def run(self, binding, fields=None, light_sync=False):
+        self.light_sync = light_sync
         return super(ProductTemplateDefinitionExporter, self).run(binding)
 
 
