@@ -45,4 +45,14 @@
 		<field name="code">records.sync_to_magento()</field>
 	</record>
 
+	<record id="action_server_resync_light_product_template_to_magento" model="ir.actions.server">
+		<field name="name">Queue light resync to Magento</field>
+		<field name="condition">True</field>
+		<field name="type">ir.actions.server</field>
+		<field name="model_id" ref="model_magento_product_template" />
+		<field name="binding_model_id" ref="model_magento_product_template"/>
+		<field name="state">code</field>
+		<field name="code">records.light_sync_to_magento()</field>
+	</record>
+
 </odoo>

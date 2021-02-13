@@ -41,6 +41,25 @@ class MagentoProductTemplate(models.Model):
     @api.multi
     @job(default_channel='root.magento.product_to_magento')
     @related_action(action='related_action_unwrap_binding')
+    def run_sync_to_magento(self):
+        self.ensure_one()
+        try:
+            with self.backend_id.work_on(self._name) as work:
+                exporter = work.component(usage='record.exporter')
+                return exporter.run(self)
+        except MissingError as e:
+            return True
+
+    @api.multi
+    def light_sync_to_magento(self):
+        for binding in self:
+            delayed = binding.with_delay(identity_key=('magento_product_template_%s' % binding.id), priority=10).run_light_sync_to_magento()
+            job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
+            binding.odoo_id.with_context(connector_no_export=True).job_ids += job
+
+    @api.multi
+    @job(default_channel='root.magento.product_to_magento')
+    @related_action(action='related_action_unwrap_binding')
     def run_light_sync_to_magento(self):
         self.ensure_one()
         try:
@@ -50,17 +69,6 @@ class MagentoProductTemplate(models.Model):
         except MissingError as e:
             return True
 
-    @api.multi
-    @job(default_channel='root.magento.product_to_magento')
-    @related_action(action='related_action_unwrap_binding')
-    def run_sync_to_magento(self):
-        self.ensure_one()
-        try:
-            with self.backend_id.work_on(self._name) as work:
-                exporter = work.component(usage='record.exporter')
-                return exporter.run(self)
-        except MissingError as e:
-            return True
 
     @job(default_channel='root.magento.productexport')
     @related_action(action='related_action_unwrap_binding')
