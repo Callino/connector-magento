@@ -19,7 +19,7 @@ class ProductTemplateDefinitionExporter(Component):
     _inherit = 'magento.product.product.exporter'
     _apply_on = ['magento.product.template']
 
-    def run(self, binding, , *args, **kwargs):
+    def run(self, binding, *args, **kwargs):
         self.light_sync = kwargs.get('light_sync', False)
         _logger.info("Set light_sync=%s", self.light_sync)
         return super(ProductTemplateDefinitionExporter, self).run(binding)
