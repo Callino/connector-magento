@@ -19,6 +19,11 @@ class ProductTemplateDefinitionExporter(Component):
     _inherit = 'magento.product.product.exporter'
     _apply_on = ['magento.product.template']
 
+    def run(self, binding, , *args, **kwargs):
+        self.light_sync = kwargs.get('light_sync', False)
+        _logger.info("Set light_sync=%s", self.light_sync)
+        return super(ProductTemplateDefinitionExporter, self).run(binding)
+
     def _run(self, fields=None):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding
@@ -213,10 +218,6 @@ class ProductTemplateDefinitionExporter(Component):
         for storeview_id in self.env['magento.storeview'].search([('backend_id', '=', self.backend_record.id)]):
             self.binding.export_product_template_for_storeview(storeview_id=storeview_id)
         '''
-
-    def run(self, binding, fields=None, light_sync=False):
-        self.light_sync = light_sync
-        return super(ProductTemplateDefinitionExporter, self).run(binding)
 
 
 class ProductTemplateExportMapper(Component):

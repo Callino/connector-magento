@@ -22,10 +22,6 @@ class ProductProductExporter(Component):
     _inherit = 'magento.exporter'
     _apply_on = ['magento.product.product']
 
-    def run(self, binding, fields=None, light_sync=False):
-        self.light_sync = light_sync
-        return super(ProductProductExporter, self).run(binding)
-
     def _run(self, fields=None):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding
