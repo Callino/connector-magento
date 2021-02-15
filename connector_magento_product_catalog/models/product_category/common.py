@@ -65,8 +65,6 @@ class ProductCategoryAdapter(Component):
     _magento2_name = 'category'
 
     def move_category(self, category_id, source_id, target_id):
-        if self.backend_id.product_synchro_strategy == 'magento_first':
-            return
         if self.work.magento_api._location.version == '2.0':
             return self._call("categories/%s/move" % category_id, {
                 "parentId": int(source_id),
@@ -74,15 +72,16 @@ class ProductCategoryAdapter(Component):
             }, storeview=None, http_method="put")
 
     def update_category_position(self, category_id, sku, position):
-        if self.backend_id.product_synchro_strategy == 'magento_first':
-            return
         if self.work.magento_api._location.version == '2.0':
-            res = self._call('categories/%s/products' % category_id, {
+            payload = {
               "productLink": {
                 "sku": sku,
                 "position": position,
                 "category_id": category_id,
                 "extension_attributes": {}
               }
-            }, http_method="post")
+            }
+            _logger.info("Do call api endpoint categories/%s/products with payload: %s", category_id, payload)
+            res = self._call('categories/%s/products' % category_id, payload, http_method="post")
+            _logger.info("Got res: %s", res)
             return res
