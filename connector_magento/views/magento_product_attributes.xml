@@ -87,7 +87,6 @@
 							<field name="attribute_set_ids" widget="many2many_tags"/>
 						</group>
 						<group>
-							<field name="ignore_attribute"/>
 							<field name="backend_id" readonly="1" />
 							<field name="odoo_id" readonly="1" />
 						</group>
