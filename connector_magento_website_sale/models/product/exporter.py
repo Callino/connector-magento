@@ -106,10 +106,10 @@ class ProductProductExporter(Component):
         """ Export the dependencies for the record"""
         _logger.info("AFTEREXPORT: In _after_export at %s", __name__)
         # Export images have to run before the super call - because in the super call there is a sync check
-        if not self.light_sync:
+        if not hasattr(self, 'light_sync') or not self.light_sync:
             self._export_images()
         super(ProductProductExporter, self)._after_export()
-        if not self.light_sync:
+        if not hasattr(self, 'light_sync') or not self.light_sync:
             self._export_product_links()
         return
 

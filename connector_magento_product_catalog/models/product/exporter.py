@@ -451,7 +451,7 @@ class ProductProductExporter(Component):
         :return:
         '''
         _logger.info("AFTEREXPORT: In _after_export at %s", __name__)
-        if not self.light_sync:
+        if not hasattr(self, 'light_sync') or not self.light_sync:
             self._sync_images()
             self._export_base_image()
             self._export_stock()

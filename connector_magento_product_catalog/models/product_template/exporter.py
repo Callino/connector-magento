@@ -202,7 +202,7 @@ class ProductTemplateDefinitionExporter(Component):
         """ Export the dependencies for the record"""
         super(ProductTemplateDefinitionExporter, self)._export_dependencies()
         self._create_attribute_lines()
-        if not self.light_sync:
+        if not hasattr(self, 'light_sync') or not self.light_sync:
             self._export_variants()
         return
 
