@@ -10,6 +10,7 @@ class MagentoStockItemImporter(Component):
 
     def _get_magento_data(self, **kwargs):
         """ Return the raw Magento data for ``self.external_id`` """
+
         if '|' in self.external_id:
             (source_code, sku) = self.external_id.split('|')
             return self.backend_adapter.msi_read(source_code, sku)

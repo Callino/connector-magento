@@ -24,7 +24,7 @@ class MagentoProductAttribute(models.Model):
         inverse_name='magento_attribute_id',
         string='Magento product attribute value'
     )
-
+    ignore_attribute = fields.Boolean('Ignore Attribute', default=False)
     odoo_field_name = fields.Many2one(comodel_name='ir.model.fields',
                                       string="Odoo Field Name",
                                       domain=[('model', 'ilike', 'product.')])

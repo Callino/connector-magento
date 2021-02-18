@@ -190,6 +190,14 @@ class SaleOrderImportMapper(Component):
             return values
         if not self.backend_record.default_gift_product_id:
             return values
+        # check if there is an discount_percent in the order items - if it is set - then it is a percentual discount and already registered on the lines
+        found_percent = False
+        for item in record['items']:
+            if 'discount_percent' in item and item['discount_percent'] > 0:
+                found_percent = True
+        if found_percent:
+            _logger.info("Found discount_percent > 0 in items - so no need to process discount_amount here")
+            return
         amount = float(record['discount_amount'])
         name = 'Gift'
         if 'discount_description' in record:
