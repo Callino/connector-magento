@@ -377,10 +377,10 @@ class ProductTemplateImportMapper(Component):
     @mapping
     def odoo_id(self, record):
         """ Will bind the product to an existing one with the same code """
-        product = self.env['product.template'].search(
+        template = self.env['product.template'].search(
             [('default_code', '=', record['sku'])], limit=1)
-        if product:
-            return {'odoo_id': product.product_tmpl_id.id}
+        if template:
+            return {'odoo_id': template.id}
 
     @mapping
     def odoo_type(self, record):
