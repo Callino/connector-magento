@@ -197,7 +197,7 @@ class SaleOrderImportMapper(Component):
                 found_percent = True
         if found_percent:
             _logger.info("Found discount_percent > 0 in items - so no need to process discount_amount here")
-            return
+            return values
         amount = float(record['discount_amount'])
         name = 'Gift'
         if 'discount_description' in record:
