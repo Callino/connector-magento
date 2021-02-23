@@ -192,11 +192,10 @@ class SaleOrderImportMapper(Component):
             return values
         # check if there is an discount_percent in the order items - if it is set - then it is a percentual discount and already registered on the lines
         found_percent = False
-        for item in record['items']:
+        for item in record['orig_items']:
             if 'discount_percent' in item and item['discount_percent'] > 0:
                 found_percent = True
         if found_percent:
-            _logger.info("Found discount_percent > 0 in items - so no need to process discount_amount here")
             return values
         amount = float(record['discount_amount'])
         name = 'Gift'
@@ -383,6 +382,7 @@ class SaleOrderImporter(Component):
         top_items = []
 
         # Remove top level configurable items
+        resource['orig_items'] = resource['items']
         for item in resource['items']:
             if item.get('product_type') and item.get('product_type') == 'configurable':
                 continue
