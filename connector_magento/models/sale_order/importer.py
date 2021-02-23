@@ -240,6 +240,7 @@ class SaleOrderImportMapper(Component):
         onchange = self.component(
             usage='ecommerce.onchange.manager.sale.order'
         )
+        _logger.info("Play onchange on %s", values['magento_order_line_ids'])
         order = onchange.play(values, values['magento_order_line_ids'])
         return order
 
@@ -765,16 +766,21 @@ class SaleOrderLineImportMapper(Component):
         if 'product_type' in record and record['product_type'] == 'bundle':
             model = 'magento.product.bundle'
 
-        if record['product_id'] == 14418:
-            # Dirty hack for steiner
-            record['product_id'] = 14417
-            record['sku'] = 'wollball-daniel-farbe-bunt'
         binder = self.binder_for(model)
         product_ref = self._get_product_ref(record)
         product = binder.to_internal(product_ref, unwrap=True)
+        if not product:
+            binder = self.binder_for('magento.product.template')
+            magento_template = binder.to_internal(product_ref, unwrap=False)
+            _logger.info("Got magento template: %s", magento_template)
+            if magento_template:
+                mpids = magento_template.magento_product_ids.filtered(lambda mp: mp.odoo_id.active)
+                _logger.info("Got magento template products: %s", mpids)
+                if len(mpids) == 1:
+                    product = magento_template.magento_product_ids[0].odoo_id
         assert product, (
-            "product_id %s with type %s should have been imported in "
-            "SaleOrderImporter._import_dependencies" % (record['product_id'], record['product_type'], ))
+                "product_id %s with type %s should have been imported in "
+                "SaleOrderImporter._import_dependencies" % (product_ref, record['product_type'],))
         return {'product_id': product.id}
 
     @mapping
