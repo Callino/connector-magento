@@ -28,6 +28,7 @@ class ResPartner(models.Model):
         string="Magento Address Bindings",
     )
     birthday = fields.Date(string='Birthday')
+    # company_name will not work for use - so we need our own company field here
     company = fields.Char(string='Company')
 
     @api.model
