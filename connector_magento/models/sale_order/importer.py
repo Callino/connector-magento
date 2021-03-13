@@ -197,7 +197,7 @@ class SaleOrderImportMapper(Component):
                 found_percent = True
         if found_percent:
             return values
-        amount = float(record['discount_amount'])
+        amount = abs(float(record['discount_amount']))
         name = 'Gift'
         if 'discount_description' in record:
             name = record['discount_description']
@@ -221,7 +221,7 @@ class SaleOrderImportMapper(Component):
             'price_unit': amount * -1,
             'name': name,
             'product_uom_qty': 1,
-            'tax_id': [(4, tax_id)] if tax_id else None,
+            'tax_id': [(4, tax_id.id)] if tax_id else None,
         }
         values['order_line'].append((0, 0, line))
         return values
