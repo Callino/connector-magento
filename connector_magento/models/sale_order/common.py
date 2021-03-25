@@ -8,7 +8,7 @@ import xmlrpc.client
 
 import odoo.addons.decimal_precision as dp
 
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _, registry
 from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.queue_job.job import job
 from odoo.addons.component.core import Component
@@ -224,6 +224,7 @@ class MagentoSaleOrderLine(models.Model):
         # override 'magento.binding', can't be INSERTed if True:
         required=False,
     )
+    parent_item_id = fields.Char('Parent Item ID')
     shipping_item_id = fields.Integer('Shipping Item ID')
     tax_rate = fields.Float(string='Tax Rate',
                             digits=dp.get_precision('Account'))
@@ -286,6 +287,31 @@ class SaleOrderLine(models.Model):
             # the new line.
             data['__copy_from_line_id'] = self.id
         return [data]
+
+
+    @api.multi
+    def _compute_qty_delivered(self):
+        lines_without_bundles = self.filtered(lambda l: l.product_id.type != 'bundle')
+        super(SaleOrderLine, lines_without_bundles)._compute_qty_delivered()
+        for line in lines_without_bundles:
+            if line.is_bundle_item and line.magento_bind_ids:
+                # Check if all bundle items are delivered - so set bundle item to be delivered
+                bundle_line = line.order_id.order_line.filtered(lambda l: l.magento_bind_ids and l.magento_bind_ids[0].external_id == line.magento_bind_ids[0].parent_item_id)
+                if not bundle_line:
+                    _logger.info("Line %s is bundle item, but no bundle parent found", line.product_id.name)
+                    continue
+                bdelivered_qty = 0
+                bordered_qty = 0
+                for bline in line.order_id.order_line.filtered(lambda l: l.magento_bind_ids and l.magento_bind_ids[0].parent_item_id == bundle_line.magento_bind_ids[0].external_id):
+                    bdelivered_qty += bline.qty_delivered
+                    bordered_qty += bline.product_uom_qty
+                pieces_per_bundle = bordered_qty / bundle_line.product_uom_qty
+                bundle_line.write({
+                    'qty_delivered_manual': bdelivered_qty / pieces_per_bundle,
+                    'qty_delivered_method': 'manual',
+                })
+        for line in self.filtered(lambda l: l.product_id.type == 'bundle'):
+            line.qty_delivered = line.qty_delivered_manual
 
 
 class SaleOrderAdapter(Component):

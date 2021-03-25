@@ -751,7 +751,10 @@ class SaleOrderLineImportMapper(Component):
     def is_bundle_item(self, record):
         if 'parent_item' in record and record['parent_item']['product_type'] == 'bundle':
             # Set Qty to invoice to zero on items of a bundle
-            return {'is_bundle_item': True}
+            return {
+                'is_bundle_item': True,
+                'parent_item_id': record['parent_item']['item_id'],
+            }
 
     @mapping
     def shipping_item_id(self, record):
