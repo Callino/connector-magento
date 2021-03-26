@@ -42,17 +42,6 @@ class MagentoStockPicking(models.Model):
             exporter = work.component(usage='tracking.exporter')
             return exporter.run(self)
 
-    def get_notify_shipping_items(self):
-        self.ensure_one()
-        data = []
-        for move in self.move_lines:
-            if move.sale_line_id and move.sale_line_id.magento_bind_ids:
-                data.append({
-                    'order_item_id': move.quantity_done,
-                    'qty': move.sale_line_id.magento_bind_ids[0].external_id,
-                })
-        return data
-
     def get_notify_shipping_tracks(self):
         self.ensure_one()
         return [{

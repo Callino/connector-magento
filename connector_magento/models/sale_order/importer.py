@@ -758,7 +758,7 @@ class SaleOrderLineImportMapper(Component):
 
     @mapping
     def shipping_item_id(self, record):
-        if 'parent_item' in record and 'item_id' in record['parent_item']:
+        if 'parent_item' in record and 'item_id' in record['parent_item'] and not record['parent_item']['product_type'] == "bundle":
             return {'shipping_item_id': record['parent_item']['item_id']}
         else:
             return {'shipping_item_id': record['item_id']}
