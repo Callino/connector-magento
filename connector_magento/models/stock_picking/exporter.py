@@ -106,7 +106,7 @@ class MagentoPickingExporter(Component):
                     'tracks': [
                         {
                             "track_number": picking.carrier_tracking_ref,
-                            "title": picking.carrier_id.name if picking.carrier_id else 'Custom',
+                            "title": picking.carrier_id.magento_tracking_title if picking.carrier_id else 'Custom',
                             "carrier_code": "custom"
                         }
                     ]
