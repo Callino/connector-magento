@@ -59,7 +59,6 @@
                             <field name="magento_order_line_ids" nolabel="1">
                                 <tree>
                                     <field name="name"/>
-                                    <field name="item_id"/>
                                     <field name="shipping_item_id"/>
                                     <field name="parent_item_id"/>
                                     <field name="tax_rate"/>
