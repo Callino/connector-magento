@@ -49,15 +49,20 @@ class AttributeValueImportMapper(Component):
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
 
-    @only_create
     @mapping
     def odoo_id(self, record):
         odoo_value = self.env['product.attribute.value'].search([
             ('name', '=', record.get('label')),
             ('attribute_id', '=', self.options.magento_attribute.odoo_id.id)
         ])
+        if not odoo_value:
+            odoo_value = self.env['product.attribute.value'].create({
+                'name': record.get('label'),
+                'attribute_id': self.options.magento_attribute.odoo_id.id,
+            })
+
         return {
-            'odoo_id': odoo_value.id if odoo_value and len(odoo_value)==1 else None,
+            'odoo_id': odoo_value.id if odoo_value and len(odoo_value) == 1 else None,
             'magento_attribute_id': self.options.magento_attribute.id,
         }
 
