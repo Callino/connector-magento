@@ -171,8 +171,7 @@ class ProductImportMapper(Component):
                 # We do ignore attributes which do not create a variant
                 continue
             if not mattribute:
-                raise MappingError("The product attribute %s is not imported." %
-                                   mattribute.name)
+                raise MappingError("The product attribute %s is not imported." % mattribute.name)
             if str(attribute['value'])=='0' and mattribute.frontend_input == 'select':
                 # We do ignore attributes with value 0 on select attribute types - magento seems to be buggy here
                 continue

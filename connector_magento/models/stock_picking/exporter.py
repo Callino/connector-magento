@@ -95,11 +95,17 @@ class MagentoPickingExporter(Component):
                                     'contain lines from the original '
                                     'sale order.'))
             arguments = {
+                'orderId': picking.sale_id.magento_bind_ids[0].external_id,
                 'notify': True if picking.carrier_id and picking.carrier_id.magento_export_tracking and  picking.carrier_tracking_ref else False,
                 'items': [{
                     'order_item_id': key,
                     'qty': val,
                 } for key, val in lines_info.items()],
+                "arguments": {
+                    "extension_attributes": {
+                        "source_code": picking.odoo_id.picking_type_id.warehouse_id.magento_bind_ids[0].external_id,
+                    }
+                }
             }
             if picking.carrier_id and picking.carrier_id.magento_export_tracking and  picking.carrier_tracking_ref:
                 arguments.update({
