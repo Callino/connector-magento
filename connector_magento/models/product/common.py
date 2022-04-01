@@ -120,6 +120,7 @@ class MagentoProductProduct(models.Model):
     magento_status = fields.Selection([
         ('2', 'Disabled'),
         ('1', 'Enabled'),
+        ('0', 'Unknown'),
     ], default='1', string="Status")
     website_price_info = fields.Html(string="Storeview prices", compute='_compute_website_prices')
 
