@@ -178,7 +178,7 @@ class ProductImportMapper(Component):
             mvalue = value_binder.to_internal("%s_%s" % (mattribute.attribute_id, str(attribute['value'])), unwrap=False)
             if not mvalue:
                 raise MappingError("The product attribute value %s in attribute %s is not imported." %
-                                   (str(attribute['value']), mattribute.name))
+                                   ("%s_%s" % (mattribute.attribute_id, str(attribute['value'])), mattribute.name))
             attribute_value_ids.append((4, mvalue.odoo_id.id))
             # Also create an attribute.line.value entrie here
             attribute_line_ids.append((0, 0, {
