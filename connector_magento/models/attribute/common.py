@@ -43,6 +43,7 @@ class MagentoProductAttribute(models.Model):
         ('media_image', 'Media Image'),
         ('gallery', 'Gallery'),
         ('weee', 'Fixed Product Tax'),
+        ('image', 'Image'),
         ('None', 'None'),
     ], 'Frontend Input', default='select'
     )
