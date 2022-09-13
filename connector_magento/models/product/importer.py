@@ -93,6 +93,7 @@ class ProductImportMapper(Component):
 
     @mapping
     def magento_name(self, record):
+        _logger.info("Record[name]: %s", record)
         return {
             'magento_name': record['name']
         }
