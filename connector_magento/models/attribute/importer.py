@@ -37,8 +37,9 @@ class AttributeImporter(Component):
             model_name='magento.product.attribute.value'
         )
         # Do import attribute values here
-        _logger.info("Got Attribute Record: %s", record)
+        _logger.info("Got %s Attribute Record Options: %s", len(record['options']))
         for i in range(len(record['options'])):
+            _logger.info("Do work on option %s", i)
             value = record['options'][i]
             if not value['value']:
                 continue
