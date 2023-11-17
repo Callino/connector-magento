@@ -5,7 +5,7 @@
 import logging
 import xmlrpc.client
 from odoo import models, fields, api
-from odoo.addons.queue_job.job import job
+# from odoo.addons.queue_job.job import job3
 from odoo.addons.component.core import Component
 
 from odoo.addons.connector.exception import IDMissingInBackend
@@ -40,7 +40,7 @@ class ResPartner(models.Model):
         fields.append('company')
         return fields
 
-    @job(default_channel='root.magento')
+    # @job(default_channel='root.magento')
     @api.model
     def import_batch(self, backend, filters=None):
         assert 'magento_website_id' in filters, (

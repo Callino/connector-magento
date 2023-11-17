@@ -3,15 +3,15 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {'name': 'Magento Connector',
- 'version': '12.0.1.1.4',
+ 'version': '16.0.0.0.0',
  'category': 'Connector',
  'depends': ['account',
              'base_technical_user',
              'product',
              'delivery',
              'sale_stock',
-             'product_multi_category',
              'connector_ecommerce',
+             'product_multi_image'
              ],
  'external_dependencies': {
      'python': ['magento'],
@@ -38,7 +38,9 @@
           'views/delivery_views.xml',
           'views/stock_views.xml',
           'views/account_payment_mode_views.xml',
+          'views/product_attribute.xml',
           'wizards/magento_binding_backend_read.xml',
+          'wizards/add_backend.xml',
           ],
  'installable': True,
  'application': False,

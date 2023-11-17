@@ -500,7 +500,7 @@ class SaleOrderImporter(Component):
     def _create(self, data):
         binding = super(SaleOrderImporter, self)._create(data)
         if binding.fiscal_position_id:
-            binding.odoo_id._compute_tax_id()
+            binding.odoo_id._recompute_taxes()
         return binding
 
     def _after_import(self, binding):

@@ -73,7 +73,7 @@ class Magento2Client(object):
             http_method = 'get'
         function = getattr(requests, http_method)
         headers = {'Authorization': 'Bearer %s' % self._token}
-        kwargs = {'headers': headers}
+        kwargs = {'headers': headers,'verify':self._verify_ssl}
         if http_method == 'get':
             kwargs['params'] = arguments
         elif arguments is not None:
@@ -206,7 +206,7 @@ class MagentoCRUDAdapter(AbstractComponent):
         raise NotImplementedError
 
     def _call(self, method, arguments=None,
-              http_method=None, storeview=None):
+              http_method=None, storeview=None, ):
         try:
             magento_api = getattr(self.work, 'magento_api')
         except AttributeError:
@@ -231,6 +231,7 @@ class GenericAdapter(AbstractComponent):
     _magento2_key = None
     _admin_path = None
     _admin2_path = None
+    _magento2_name = None
 
     @staticmethod
     def get_searchCriteria(filters):
@@ -305,7 +306,7 @@ class GenericAdapter(AbstractComponent):
             return quote_plus(term)
         return term
 
-    def read(self, external_id, attributes=None, storeview=None):
+    def read(self, external_id, attributes=None, storeview=None, **kwargs):
         """ Returns the information of a record
 
         :rtype: dict
@@ -325,16 +326,16 @@ class GenericAdapter(AbstractComponent):
             return self._call('%s.info' % self._magento_model,
                               arguments, storeview=storeview)
 
-        if attributes:
-            raise NotImplementedError
+        # if attributes:
+        #     raise NotImplementedError
         if self._magento2_key:
             return self._call(
-                '%s/%s' % (self._magento2_model, self.escape(external_id)),
-                attributes, storeview=storeview)
-        res = self._call(self._magento2_model, None)
-        return next(record for record in res if record['id'] == external_id)
+                ('%s/%s' % (self._magento2_model, self.escape(external_id))) % kwargs,
+                None, storeview=storeview)
+        res = self._call(self._magento2_model % kwargs, None)
+        return next(record for record in res if str(record['id']) == external_id)
 
-    def search_read(self, filters=None):
+    def search_read(self, filters=None, ):
         """ Search records according to some criterias
         and returns their information"""
         if self.collection.version == '1.7':
@@ -348,25 +349,55 @@ class GenericAdapter(AbstractComponent):
         return self._call(
             self._magento2_search or self._magento2_model, params)
 
-    def create(self, data):
+    def create(self, data, storeview=None, **kwargs):
         """ Create a record on the external system """
-        if self.collection.version == '1.7':
-            return self._call('%s.create' % self._magento_model, [data])
-        raise NotImplementedError
+        """ Create a record on the external system """
+        if self.work.magento_api._location.version == '2.0':
+            if self._magento2_name:
+                new_object = self._call(
+                    self._magento2_model % kwargs,
+                    {self._magento2_name: data,
+                     'saveOptions': True}, http_method='post')
+                if isinstance(new_object, dict):
+                    data.update(new_object)
+            else:
+                new_object = self._call(
+                    self._magento2_model % kwargs,
+                    data, http_method='post')
+            return self._get_id_from_create(new_object, data)
+        return self._call('%s.create' % self._magento_model, [data])
 
-    def write(self, external_id, data):
+    def _get_id_from_create(self, result, data=None):
+        return result['id']
+
+    def write(self, id, data, storeview=None, **kwargs):
         """ Update records on the external system """
         if self.collection.version == '1.7':
             return self._call('%s.update' % self._magento_model,
-                              [int(external_id), data])
-        raise NotImplementedError
+                              [int(id), data])
+        if self._magento2_name:
+            return self._call(
+                ('%s/%s' % (self._magento2_model, id)) % kwargs,
+                {self._magento2_name: data}, http_method='put', storeview=storeview or 'all')
+        else:
+            return self._call(
+                ('%s/%s' % (self._magento2_model, id)) % kwargs,
+                data, http_method='put', storeview=storeview or 'all')
 
-    def delete(self, external_id):
+    def delete(self, external_id, **kwargs):
         """ Delete a record on the external system """
         if self.collection.version == '1.7':
             return self._call('%s.delete' % self._magento_model,
                               [int(external_id)])
-        raise NotImplementedError
+        try:
+            res = self._call('%s/%s' % (self._magento2_model, self.escape(external_id)) , None, http_method="delete")
+            _logger.info("Record %s deleted on Magento", id)
+        except Exception as e:
+            if e.response.status_code == 404:
+                _logger.info("Record %s already deleted", id)
+                return True
+            raise
+        return res
 
     def admin_url(self, external_id):
         """ Return the URL in the Magento admin for a record """
@@ -388,3 +419,4 @@ class GenericAdapter(AbstractComponent):
         path = path.lstrip('/')
         url = '/'.join((url, path))
         return url
+

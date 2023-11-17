@@ -86,6 +86,7 @@ class ProductCategoryImportMapper(Component):
     _apply_on = 'magento.product.category'
 
     direct = [
+        ('id','external_id'),
         ('description', 'description'),
     ]
 
@@ -112,5 +113,4 @@ class ProductCategoryImportMapper(Component):
                                "magento id %s is not imported." %
                                record['parent_id'])
 
-        parent = parent_binding.odoo_id
-        return {'parent_id': parent.id, 'magento_parent_id': parent_binding.id}
+        return {'parent_id': parent_binding.odoo_id.id}

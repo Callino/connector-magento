@@ -11,8 +11,8 @@ from odoo import models, fields, api
 from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.component.core import Component
 from odoo.addons.component_event import skip_if
-from odoo.addons.queue_job.job import job, related_action
-from odoo.exceptions import UserError
+# # from odoo.addons.queue_job.job import job3, related_action
+from odoo.exceptions import UserError, MissingError
 from odoo.tools.translate import _
 from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
 
@@ -37,16 +37,16 @@ class MagentoProductProduct(models.Model):
             ('configurable', 'Configurable Product'),
             ('virtual', 'Virtual Product'),
             ('downloadable', 'Downloadable Product'),
-            ('giftcard', 'Giftcard')
+            ('giftcard', 'Giftcard'),
             # XXX activate when supported
-            # ('grouped', 'Grouped Product'),
+            ('grouped', 'Grouped Product'),
             # ('bundle', 'Bundle Product'),
         ]
 
     odoo_id = fields.Many2one(comodel_name='product.product',
                               string='Odoo Product',
                               required=True,
-                              ondelete='restrict')
+                              ondelete='cascade')
     magento_internal_id = fields.Char(
         help=(
             'In Magento2, we have to keep track of both the external_id (the '
@@ -56,8 +56,8 @@ class MagentoProductProduct(models.Model):
     website_ids = fields.Many2many(comodel_name='magento.website',
                                    string='Websites',
                                    readonly=True)
-    created_at = fields.Date('Created At (on Magento)')
-    updated_at = fields.Date('Updated At (on Magento)')
+    created_at = fields.Datetime('Created At (on Magento)')
+    updated_at = fields.Datetime('Updated At (on Magento)')
     product_type = fields.Selection(selection='product_type_get',
                                     string='Magento Product Type',
                                     default='simple',
@@ -90,11 +90,49 @@ class MagentoProductProduct(models.Model):
              "from stock synchronizations.",
     )
 
+    magento_url_key = fields.Char(string="URL Key")
+    attribute_set_id = fields.Many2one(
+        comodel_name='magento.product.attribute.set',
+        string='Attribute Set',
+    )
+    magento_status = fields.Selection([
+        ('2', 'Disabled'),
+        ('1', 'Enabled'),
+        ('0', 'Unknown'),
+    ], default='1', string="Status")
+
+    magento_visibility = fields.Selection([
+        ('1', 'Not Visible Individually'),
+        ('2', 'Catalog'),
+        ('3', 'Search'),
+        ('4', 'Catalog, Search'),
+    ], default='4', string="Visibility")
     RECOMPUTE_QTY_STEP = 1000  # products at a time
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    product_links = fields.Many2many(
+        comodel_name='magento.product.product',
+        relation='magento_product_product_link',
+        column1='product_id',
+        column2='linked_product_id',
+        string='Related Products',
+    )
+
+
+     # @api.multi
+    # @related_action(action='related_action_unwrap_binding')
+    # @job(default_channel='root.magento.product_to_magento')
+    # def run_sync_to_magento(self):
+    #     self.ensure_one()
+    #     try:
+    #         with self.backend_id.work_on(self._name) as work:
+    #             exporter = work.component(usage='record.exporter')
+    #             return exporter.run(self)
+    #     except MissingError as e:
+    #         return True
+
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def export_inventory(self, fields=None):
         """ Export the inventory configuration and quantity of a product. """
         self.ensure_one()
@@ -102,7 +140,7 @@ class MagentoProductProduct(models.Model):
             exporter = work.component(usage='product.inventory.exporter')
             return exporter.run(self, fields)
 
-    @api.multi
+    # @api.multi
     def recompute_magento_qty(self):
         """ Check if the quantity in the stock location configured
         on the backend has changed since the last export.
@@ -124,7 +162,7 @@ class MagentoProductProduct(models.Model):
                                                 self.browse(product_ids))
         return True
 
-    @api.multi
+    # @api.multi
     def _recompute_magento_qty_backend(self, backend, products,
                                        read_fields=None):
         """ Recompute the products quantity for one backend.
@@ -160,7 +198,7 @@ class MagentoProductProduct(models.Model):
                 if new_qty != product['magento_qty']:
                     self.browse(product['id']).magento_qty = new_qty
 
-    @api.multi
+    # @api.multi
     def _magento_qty(self, product, backend, location, stock_field):
         """ Return the current quantity for one product.
 
@@ -189,6 +227,15 @@ class MagentoProductProduct(models.Model):
             'We have to import the product before we can provide the admin '
             'link to it.'))
 
+class ProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    product_category_public_ids = fields.Many2many(
+        comodel_name='product.category.public',
+        relation='product_category_public_rel',
+        string='Public Categories',
+    )
+
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'
@@ -198,6 +245,7 @@ class ProductProduct(models.Model):
         inverse_name='odoo_id',
         string='Magento Bindings',
     )
+
 
 
 class ProductProductAdapter(Component):
@@ -210,8 +258,10 @@ class ProductProductAdapter(Component):
     _magento2_search = 'products'
     _magento2_key = 'sku'
     _admin_path = '/{model}/edit/id/{id}'
+    _magento2_name = 'product'
 
-    def _call(self, method, arguments, http_method=None, storeview=None):
+
+    def _call(self, method, arguments=None, http_method=None, storeview=None):
         try:
             return super(ProductProductAdapter, self)._call(
                 method, arguments, http_method=http_method,
@@ -246,7 +296,7 @@ class ProductProductAdapter(Component):
                                   [filters] if filters else [{}])]
         return super(ProductProductAdapter, self).search(filters=filters)
 
-    def read(self, external_id, storeview_id=None, attributes=None):
+    def read(self, external_id, storeview=None, attributes=None, **kwargs):
         """ Returns the information of a record
 
         :rtype: dict
@@ -255,23 +305,24 @@ class ProductProductAdapter(Component):
         if self.collection.version == '1.7':
             return self._call(
                 'ol_catalog_product.info',
-                [int(external_id), storeview_id, attributes, 'id'])
+                [int(external_id), storeview, attributes, 'id'])
         res = super(ProductProductAdapter, self).read(
-            external_id, attributes=attributes, storeview=storeview_id)
+            external_id, attributes=attributes, storeview=storeview)
         if res:
             for attr in res.get('custom_attributes', []):
                 res[attr['attribute_code']] = attr['value']
         return res
 
-    def write(self, external_id, data, storeview_id=None):
+    def write(self, external_id, data, storeview=None, **kwargs):
         """ Update records on the external system """
         # pylint: disable=method-required-super
         # XXX actually only ol_catalog_product.update works
         # the PHP connector maybe breaks the catalog_product.update
         if self.collection.version == '1.7':
             return self._call('ol_catalog_product.update',
-                              [int(external_id), data, storeview_id, 'id'])
-        raise NotImplementedError  # TODO
+                              [int(external_id), data, storeview, 'id'])
+        return super(ProductProductAdapter, self).write(
+            external_id, data, storeview=storeview, **kwargs)
 
     def get_images(self, external_id, storeview_id=None, data=None):
         """ Fetch image metadata either by querying Magento 1.x, or extracting

@@ -97,6 +97,9 @@ class MagentoBaseExporter(AbstractComponent):
 
         result = self._run(*args, **kwargs)
 
+        if not self.external_id:
+            return result
+
         self.binder.bind(self.external_id, self.binding)
         # Commit so we keep the external ID when there are several
         # exports (due to dependencies) and one of them fails.
@@ -109,7 +112,7 @@ class MagentoBaseExporter(AbstractComponent):
         self._after_export()
         return result
 
-    def _run(self):
+    def _run(self, *args, **kwargs):
         """ Flow of the synchronization, implemented in inherited classes"""
         raise NotImplementedError
 
@@ -147,7 +150,7 @@ class MagentoExporter(AbstractComponent):
         sql = ("SELECT id FROM %s WHERE ID = %%s FOR UPDATE NOWAIT" %
                self.model._table)
         try:
-            self.env.cr.execute(sql, (self.binding.id, ),
+            self.env.cr.execute(sql, (self.binding.id,),
                                 log_exceptions=False)
         except psycopg2.OperationalError:
             _logger.info('A concurrent job is already exporting the same '
@@ -197,7 +200,8 @@ class MagentoExporter(AbstractComponent):
     def _export_dependency(self, relation, binding_model,
                            component_usage='record.exporter',
                            binding_field='magento_bind_ids',
-                           binding_extra_vals=None):
+                           binding_extra_vals=None,
+                           force_update=False):
         """
         Export a dependency. The exporter class is a subclass of
         ``MagentoExporter``. If a more precise class need to be defined,
@@ -282,10 +286,16 @@ class MagentoExporter(AbstractComponent):
             # If wrap is True, relation is already a binding record.
             binding = relation
 
-        if not rel_binder.to_external(binding):
+        if not rel_binder.to_external(binding) or force_update:
             exporter = self.component(usage=component_usage,
                                       model_name=binding_model)
             exporter.run(binding)
+
+    def _get_binding(self, model, _id):
+        return self.env[model].search([
+            ('odoo_id', '=', _id),
+            ('backend_id', '=', self.backend_record.id)
+        ])
 
     def _export_dependencies(self):
         """ Export the dependencies for the record"""
@@ -322,24 +332,24 @@ class MagentoExporter(AbstractComponent):
         """ Get the data to pass to :py:meth:`_create` """
         return map_record.values(for_create=True, fields=fields, **kwargs)
 
-    def _create(self, data):
+    def _create(self, data, **kwargs):
         """ Create the Magento record """
         # special check on data before export
         self._validate_create_data(data)
-        return self.backend_adapter.create(data)
+        return self.backend_adapter.create(data, **kwargs)
 
     def _update_data(self, map_record, fields=None, **kwargs):
         """ Get the data to pass to :py:meth:`_update` """
         return map_record.values(fields=fields, **kwargs)
 
-    def _update(self, data):
+    def _update(self, data, **kwargs):
         """ Update an Magento record """
         assert self.external_id
         # special check on data before export
         self._validate_update_data(data)
-        self.backend_adapter.write(self.external_id, data)
+        self.backend_adapter.write(self.external_id, data, **kwargs)
 
-    def _run(self, fields=None):
+    def _run(self, fields=None, **kwargs):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding
 
@@ -359,13 +369,13 @@ class MagentoExporter(AbstractComponent):
         map_record = self._map_data()
 
         if self.external_id:
-            record = self._update_data(map_record, fields=fields)
+            record = self._update_data(map_record, fields=fields, **kwargs)
             if not record:
                 return _('Nothing to export.')
-            self._update(record)
+            self._update(record, **kwargs)
         else:
-            record = self._create_data(map_record, fields=fields)
+            record = self._create_data(map_record, fields=fields, **kwargs)
             if not record:
                 return _('Nothing to export.')
-            self.external_id = self._create(record)
+            self.external_id = self._create(record, **kwargs)
         return _('Record exported with ID %s on Magento.') % self.external_id

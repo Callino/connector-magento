@@ -35,9 +35,9 @@ class MagentoImporter(AbstractComponent):
         self.external_id = None
         self.magento_record = None
 
-    def _get_magento_data(self):
+    def _get_magento_data(self, **kwargs):
         """ Return the raw Magento data for ``self.external_id`` """
-        return self.backend_adapter.read(self.external_id)
+        return self.backend_adapter.read(self.external_id, **kwargs)
 
     def _before_import(self):
         """ Hook called before the import, when we have the Magento
@@ -66,7 +66,7 @@ class MagentoImporter(AbstractComponent):
         return magento_date < sync_date
 
     def _import_dependency(self, external_id, binding_model,
-                           importer=None, always=False):
+                           importer=None, always=False, external_field=None, **kwargs):
         """ Import a dependency.
 
         The importer class is a class or subclass of
@@ -88,12 +88,12 @@ class MagentoImporter(AbstractComponent):
         if not external_id:
             return
         binder = self.binder_for(binding_model)
-        if always or not binder.to_internal(external_id):
+        if always or not binder.to_internal(external_id, external_field=external_field):
             if importer is None:
                 importer = self.component(usage='record.importer',
                                           model_name=binding_model)
             try:
-                importer.run(external_id)
+                importer.run(external_id, **kwargs)
             except NothingToDoJob:
                 _logger.info(
                     'Dependency import of %s(%s) has been ignored.',
@@ -145,7 +145,7 @@ class MagentoImporter(AbstractComponent):
     def _create_data(self, map_record, **kwargs):
         return map_record.values(for_create=True, **kwargs)
 
-    def _create(self, data):
+    def _create(self, data, **kwargs):
         """ Create the OpenERP record """
         # special check on data before import
         self._validate_data(data)
@@ -157,7 +157,7 @@ class MagentoImporter(AbstractComponent):
     def _update_data(self, map_record, **kwargs):
         return map_record.values(**kwargs)
 
-    def _update(self, binding, data):
+    def _update(self, binding, data, **kwargs):
         """ Update an OpenERP record """
         # special check on data before import
         self._validate_data(data)
@@ -169,12 +169,21 @@ class MagentoImporter(AbstractComponent):
         """ Hook called at the end of the import """
         return
 
-    def run(self, external_id, force=False, data=None):
+    def run(self, external_id, force=False, data=None, **kwargs):
         """ Run the synchronization
 
         :param external_id: identifier of the record on Magento
         """
-        self.external_id = external_id
+        if not external_id:
+            return _('Empty ID')
+        self.force = force
+        if isinstance(external_id, dict):
+            self.magento_record = external_id
+            self.external_id = str(external_id[self._magento_id_field])
+        else:
+            self.external_id = external_id
+        if not isinstance(self.external_id, str):
+            self.external_id = str(self.external_id)
         lock_name = 'import({}, {}, {}, {})'.format(
             self.backend_record._name,
             self.backend_record.id,
@@ -182,19 +191,20 @@ class MagentoImporter(AbstractComponent):
             external_id,
         )
 
-        if data:
-            self.magento_record = data
-        else:
+        if not isinstance(external_id, dict):
             try:
-                self.magento_record = self._get_magento_data()
+                self.magento_record = self._get_magento_data(**kwargs)
             except IDMissingInBackend:
                 return _('Record does no longer exist in Magento')
-
+        self._preprocess_magento_record()
         skip = self._must_skip()    # pylint: disable=assignment-from-none
         if skip:
             return skip
-
-        binding = self._get_binding()
+        if kwargs.get('binding'):
+            binding = kwargs['binding']
+            del kwargs['binding']
+        else:
+            binding = self._get_binding()
 
         if not force and self._is_uptodate(binding):
             return _('Already up-to-date.')
@@ -211,16 +221,19 @@ class MagentoImporter(AbstractComponent):
         map_record = self._map_data()
 
         if binding:
-            record = self._update_data(map_record)
-            self._update(binding, record)
+            record = self._update_data(map_record,binding=binding, **kwargs)
+            self._update(binding, record, **kwargs)
         else:
-            record = self._create_data(map_record)
-            binding = self._create(record)
+            record = self._create_data(map_record,**kwargs)
+            binding = self._create(record, **kwargs)
 
         self.binder.bind(self.external_id, binding)
 
         self._after_import(binding)
 
+    def _preprocess_magento_record(self):
+        """ Hook after we got magento record """
+        return
 
 class BatchImporter(AbstractComponent):
     """ The role of a BatchImporter is to search for a list of

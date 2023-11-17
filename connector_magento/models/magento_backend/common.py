@@ -10,8 +10,9 @@ from datetime import datetime, timedelta
 from odoo import models, fields, api, _
 from odoo.tools import ustr
 from odoo.exceptions import UserError
+from odoo.addons.queue_job.job import identity_exact
 
-from odoo.addons.connector.models.checkpoint import add_checkpoint
+# from odoo.addons.connector.models.checkpoint import add_checkpoint
 from ...components.backend_adapter import MagentoLocation, MagentoAPI
 
 _logger = logging.getLogger(__name__)
@@ -128,9 +129,26 @@ class MagentoBackend(models.Model):
              'without a category will be linked to it.',
     )
 
+    default_attribute_set_id = fields.Many2one(
+        comodel_name='magento.product.attribute.set',
+        string='Default Attribute Set',
+        help='If a default attribute set is selected, products exported '
+                'without a attribute set will be linked to it.',
+    )
+
+    pricelist_id = fields.Many2one(
+        comodel_name='product.pricelist',
+        string='Default Pricelist',
+        help='If a default pricelist is selected, products imported '
+             'without a pricelist will be linked to it and will '
+             'be the source for exported price',
+    )
     # TODO? add a field `auto_activate` -> activate a cron
     import_products_from_date = fields.Datetime(
         string='Import products from date',
+    )
+    import_configurables_from_date = fields.Datetime(
+        string='Import configurables from date',
     )
     import_categories_from_date = fields.Datetime(
         string='Import categories from date',
@@ -145,6 +163,15 @@ class MagentoBackend(models.Model):
              "stock inventory updates.\nIf empty, Quantity Available "
              "is used.",
     )
+
+    no_stock_sync = fields.Boolean(
+        string='No Stock Synchronization',
+        required=False,
+        default=False,
+        help="Check this to default exclude new products "
+             "from stock synchronizations.",
+    )
+
     product_binding_ids = fields.One2many(
         comodel_name='magento.product.product',
         inverse_name='backend_id',
@@ -172,13 +199,41 @@ class MagentoBackend(models.Model):
         "level. "
         "When import partner, ignore company_id if this flag is set.",
     )
+    product_synchro_strategy = fields.Selection([
+            ('magento_first', 'Magento First'),
+            ('odoo_first', 'Odoo First'),
+        ],
+        string='Product Update Strategy',
+        help='Precise which strategy you want to update',
+        default='odoo_first'
+    )
+    product_import_strategy = fields.Selection([
+            ('always', 'Always Import'),
+            ('never', 'Do not Import'),
+            ('create', 'Create New Products'),
+            ('update', 'Update Existing Products'),
+        ],
+        string='Product Import Strategy',
+        help='Precise which strategy you want to use for the product import',
+        default='always'
+    )
+    product_export_strategy = fields.Selection([
+            ('always', 'Always Import'),
+            ('never', 'Do not Import'),
+            ('create', 'Create New Products'),
+            ('update', 'Update Existing Products'),
+        ],
+        string='Product Export Strategy',
+        help='Precise which strategy you want to use for the product export',
+        default='always'
+    )
 
     _sql_constraints = [
         ('sale_prefix_uniq', 'unique(sale_prefix)',
          "A backend with the same sale prefix already exists")
     ]
 
-    @api.multi
+    # @api.multi
     def check_magento_structure(self):
         """ Used in each data import.
 
@@ -191,7 +246,7 @@ class MagentoBackend(models.Model):
         return True
 
     @contextmanager
-    @api.multi
+    # @api.multi
     def work_on(self, model_name, **kwargs):
         self.ensure_one()
         lang = self.default_lang_id
@@ -221,14 +276,15 @@ class MagentoBackend(models.Model):
                     model_name, magento_api=magento_api, **kwargs) as work:
                 yield work
 
-    @api.multi
+    # @api.multi
     def add_checkpoint(self, record):
+        """ Add a checkpoint for the given record """
         self.ensure_one()
         record.ensure_one()
-        return add_checkpoint(self.env, record._name, record.id,
-                              self._name, self.id)
+        # return add_checkpoint(self.env, record._name, record.id,
+        #                       self._name, self.id)
 
-    @api.multi
+    # @api.multi
     def synchronize_metadata(self):
         try:
             for backend in self:
@@ -247,7 +303,7 @@ class MagentoBackend(models.Model):
                   "Here is the error:\n%s") %
                 ustr(e))
 
-    @api.multi
+    # @api.multi
     def import_partners(self):
         """ Import partners from all websites """
         for backend in self:
@@ -255,7 +311,7 @@ class MagentoBackend(models.Model):
             backend.website_ids.import_partners()
         return True
 
-    @api.multi
+    # @api.multi
     def import_sale_orders(self):
         """ Import sale orders from all store views """
         storeview_obj = self.env['magento.storeview']
@@ -263,7 +319,9 @@ class MagentoBackend(models.Model):
         storeviews.import_sale_orders()
         return True
 
-    @api.multi
+
+
+    # @api.multi
     def import_customer_groups(self):
         for backend in self:
             backend.check_magento_structure()
@@ -272,7 +330,7 @@ class MagentoBackend(models.Model):
             )
         return True
 
-    @api.multi
+    # @api.multi
     def _import_from_date(self, model, from_date_field):
         import_start_time = datetime.now()
         for backend in self:
@@ -300,19 +358,36 @@ class MagentoBackend(models.Model):
         next_time = fields.Datetime.to_string(next_time)
         self.write({from_date_field: next_time})
 
-    @api.multi
+    # @api.multi
     def import_product_categories(self):
         self._import_from_date('magento.product.category',
                                'import_categories_from_date')
         return True
 
-    @api.multi
+    # @api.multi
     def import_product_product(self):
         self._import_from_date('magento.product.product',
                                'import_products_from_date')
         return True
+    def import_product_template(self):
+        self._import_from_date('magento.product.template',
+                               'import_configurables_from_date')
+        return True
+    # @api.multi
+    def import_tax_classes(self):
+        """ Import tax class """
+        for backend in self:
+            self.env['magento.account.tax'].import_batch(backend)
+        return True
 
-    @api.multi
+    def import_attribute_sets(self):
+        """ Import attribute sets from backend """
+        for backend in self:
+            backend.check_magento_structure()
+            self.env['magento.product.attribute.set'].with_delay(identity_key=identity_exact).import_batch(backend)
+        return True
+
+    # @api.multi
     def _domain_for_update_product_stock_qty(self):
         return [
             ('backend_id', 'in', self.ids),
@@ -320,7 +395,7 @@ class MagentoBackend(models.Model):
             ('no_stock_sync', '=', False),
         ]
 
-    @api.multi
+    # @api.multi
     def update_product_stock_qty(self):
         mag_product_obj = self.env['magento.product.product']
         domain = self._domain_for_update_product_stock_qty()
@@ -408,21 +483,21 @@ class MagentoConfigSpecializer(models.AbstractModel):
     def _parent(self):
         return getattr(self, self._parent_name)
 
-    @api.multi
+    # @api.multi
     def _compute_account_analytic_id(self):
         for this in self:
             this.account_analytic_id = (
                 this.specific_account_analytic_id or
                 this._parent.account_analytic_id)
 
-    @api.multi
+    # @api.multi
     def _compute_fiscal_position_id(self):
         for this in self:
             this.fiscal_position_id = (
                 this.specific_fiscal_position_id or
                 this._parent.fiscal_position_id)
 
-    @api.multi
+    # @api.multi
     def _compute_warehouse_id(self):
         for this in self:
             this.warehouse_id = (
