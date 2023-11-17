@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2013 Guewen Baconnier,Camptocamp SA,Akretion
 # © 2016 Sodexis
 # © 2019 Wolfgang Pichler, Callino
@@ -6,7 +5,7 @@
 # Removed              'product_multi_category' dependency
 
 {'name': 'Magento Connector',
- 'version': '12.0.1.0.0',
+ 'version': '16.0.0.0.0',
  'category': 'Connector',
  'depends': ['account',
              'base_technical_user',
@@ -18,7 +17,7 @@
  'external_dependencies': {
      'python': ['magento'],
  },
- 'author': "Camptocamp,Akretion,Sodexis,Callino,Odoo Community Association (OCA)",
+ 'author': "Camptocamp,Akretion,Sodexis,Callino,Trivax SL,Odoo Community Association (OCA)",
  'license': 'AGPL-3',
  'website': 'http://www.odoo-magento-connector.com',
  'images': ['images/magento_backend.png',
