@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2013 Guewen Baconnier,Camptocamp SA,Akretion
 # © 2016 Sodexis
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -14,6 +13,7 @@ from odoo.exceptions import UserError
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.models import checkpoint
+# from odoo.addons.connector.models.checkpoint import add_checkpoint
 from ...components.backend_adapter import MagentoLocation, MagentoAPI
 from odoo.addons.queue_job.job import identity_exact
 import json
@@ -37,9 +37,7 @@ class MagentoBackend(models.Model):
         to add a version from an ``_inherit`` does not constrain
         to redefine the ``version`` field in the ``_inherit`` model.
         """
-        return [('1.7', '1.7+'),
-                ('2.0', '2.0+') ]
-
+        return [('1.7', '1.7+'), ('2.0', '2.0+')]
 
     @api.model
     def _get_stock_field_id(self):
@@ -285,7 +283,7 @@ class MagentoBackend(models.Model):
          "A backend with the same sale prefix already exists")
     ]
 
-    @api.multi
+    # @api.multi
     def check_magento_structure(self):
         """ Used in each data import.
 
@@ -298,7 +296,7 @@ class MagentoBackend(models.Model):
         return True
 
     @contextmanager
-    @api.multi
+    # @api.multi
     def work_on(self, model_name, **kwargs):
         self.ensure_one()
         lang = self.default_lang_id
@@ -328,14 +326,14 @@ class MagentoBackend(models.Model):
                     model_name, magento_api=magento_api, **kwargs) as work:
                 yield work
 
-    @api.multi
+    # @api.multi
     def add_checkpoint(self, record):
         self.ensure_one()
         record.ensure_one()
-        return checkpoint.add_checkpoint(self.env, record._name, record.id,
-                                         self._name, self.id)
+        # return add_checkpoint(self.env, record._name, record.id,
+        #                       self._name, self.id)
 
-    @api.multi
+    # @api.multi
     def synchronize_metadata(self):
         try:
             for backend in self:
@@ -354,7 +352,8 @@ class MagentoBackend(models.Model):
                   "Here is the error:\n%s") %
                 ustr(e))
 
-    @api.multi
+    # @api.multi
+    # @api.multi
     def button_resync_products(self):
         for backend in self:
             for model_name in ('magento.product.template',
@@ -412,7 +411,7 @@ class MagentoBackend(models.Model):
             else:
                 _logger.info("No media binding found on product %s for %s", product['sku'], entrie)
 
-    @api.multi
+    #@api.multi
     def button_check_products(self):
         self.ensure_one()
         backend = self
@@ -526,7 +525,7 @@ class MagentoBackend(models.Model):
         action['domain'] = [('backend_id', '=', self.id)]
         return action
 
-    @api.multi
+    # @api.multi
     def import_partners(self):
         """ Import partners from all websites """
         for backend in self:
@@ -534,7 +533,7 @@ class MagentoBackend(models.Model):
             backend.website_ids.import_partners()
         return True
 
-    @api.multi
+    # @api.multi
     def import_sale_orders(self):
         """ Import sale orders from all store views """
         storeview_obj = self.env['magento.storeview']
@@ -542,6 +541,7 @@ class MagentoBackend(models.Model):
         storeviews.import_sale_orders()
         return True
 
+    # @api.multi
     @api.multi
     def import_tax_classes(self):
         """ Import tax class """
@@ -558,7 +558,7 @@ class MagentoBackend(models.Model):
             )
         return True
 
-    @api.multi
+    # @api.multi
     def _import_from_date(self, model, from_date_field):
         import_start_time = datetime.now()
         for backend in self:
@@ -586,37 +586,38 @@ class MagentoBackend(models.Model):
         next_time = fields.Datetime.to_string(next_time)
         self.write({from_date_field: next_time})
 
-    @api.multi
+    # @api.multi
     def import_product_categories(self):
         self._import_from_date('magento.product.category',
                                'import_categories_from_date')
         return True
 
-    @api.multi
+    # @api.multi
     def import_product_product(self):
         self._import_from_date('magento.product.product',
                                'import_products_from_date')
         return True
 
-    @api.multi
+    # @api.multi
     def import_product_template(self):
         self._import_from_date('magento.product.template',
                                'import_product_templates_from_date')
         return True
 
-    @api.multi
+    # @api.multi
     def import_product_bundle(self):
         self._import_from_date('magento.product.bundle',
                                'import_product_bundles_from_date')
         return True
 
-    @api.multi
+    # @api.multi
     def import_attributes_set(self):
         """ Import attribute sets from backend """
         for backend in self:
             backend.check_magento_structure()
             self.env['magento.product.attributes.set'].with_delay(identity_key=identity_exact).import_batch(backend)
         return True
+    # @api.multi
     def _domain_for_update_product_stock_qty(self):
         return [
             ('backend_id', 'in', self.ids),
@@ -624,7 +625,7 @@ class MagentoBackend(models.Model):
             ('no_stock_sync', '=', False),
         ]
 
-    @api.multi
+    # @api.multi
     def update_product_stock_qty(self):
         magento_stock_items = self.env['magento.stock.item'].search([
             ('backend_id', 'in', self.ids),
@@ -762,20 +763,21 @@ class MagentoConfigSpecializer(models.AbstractModel):
                 this._parent.pricelist_id)
 
     @api.multi
+    # @api.multi
     def _compute_account_analytic_id(self):
         for this in self:
             this.account_analytic_id = (
                 this.specific_account_analytic_id or
                 this._parent.account_analytic_id)
 
-    @api.multi
+    # @api.multi
     def _compute_fiscal_position_id(self):
         for this in self:
             this.fiscal_position_id = (
                 this.specific_fiscal_position_id or
                 this._parent.fiscal_position_id)
 
-    @api.multi
+    # @api.multi
     def _compute_warehouse_id(self):
         for this in self:
             this.warehouse_id = (

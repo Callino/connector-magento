@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
-# Copyright 2013-2017 Camptocamp SA
+# Copyright 2013-2019 Camptocamp SA
 # © 2016 Sodexis
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
 import xmlrpc.client
 from odoo import api, models, fields
-from odoo.addons.queue_job.job import job, related_action
+# # from odoo.addons.queue_job.job import job3, related_action
 from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.component.core import Component
 from odoo.addons.queue_job.job import identity_exact
@@ -32,9 +31,9 @@ class MagentoStockPicking(models.Model):
                                       string='Picking Method',
                                       required=True)
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def export_tracking_number(self):
         """ Export the tracking number of a delivery order. """
         self.ensure_one()
@@ -50,9 +49,9 @@ class MagentoStockPicking(models.Model):
             "carrier_code": self.carrier_id.magento_carrier_code
         }]
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def export_picking_done(self, with_tracking=True):
         """ Export a complete or partial delivery order. """
         # with_tracking is True to keep a backward compatibility (jobs that
@@ -71,7 +70,7 @@ class MagentoStockPicking(models.Model):
 class StockPickingType(models.Model):
     _inherit = 'stock.picking.type'
 
-    dropship_warehouse_id = fields.Many2one('stock.warehouse', string="Lager f. Magento Export bei Streckenlieferung")
+    dropship_warehouse_id = fields.Many2one('stock.warehouse', string="Warehouse for Magento export for drop shipping")
 
 
 class StockPicking(models.Model):
@@ -95,7 +94,8 @@ class StockPickingAdapter(Component):
     def _call(self, method, arguments, http_method=None, storeview=None):
         try:
             return super(StockPickingAdapter, self)._call(
-                method, arguments, http_method=http_method, storeview=storeview)
+                method, arguments, http_method=http_method,
+                storeview=storeview)
         except xmlrpc.client.Fault as err:
             # this is the error in the Magento API
             # when the shipment does not exist
@@ -106,6 +106,7 @@ class StockPickingAdapter(Component):
 
     def create(self, order_id, items, comment, email, include_comment):
         """ Create a record on the external system """
+        # pylint: disable=method-required-super
         return self._call('%s.create' % self._magento_model,
                           [order_id, items, comment, email, include_comment])
 
@@ -162,7 +163,10 @@ class MagentoStockPickingListener(Component):
         for binding in record.magento_bind_ids:
             # Set the priority to 20 to have more chance that it would be
             # executed after the picking creation
-            binding.with_delay(priority=20, identity_key=identity_exact).export_tracking_number()
+            binding.with_delay(priority=20).export_tracking_number()
+
+    def on_picking_dropship_done(self, record, picking_method):
+        return self.on_picking_out_done(record, picking_method)
 
     def on_picking_out_done(self, record, picking_method):
         """

@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
-# © 2013-2017 Guewen Baconnier,Camptocamp SA,Akretion
+# © 2013-2019 Guewen Baconnier,Camptocamp SA,Akretion
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import api, models, fields
-from odoo.addons.queue_job.job import job, related_action
 from urllib.parse import urljoin
+from odoo.addons.queue_job.job import related_action
+# # from odoo.addons.queue_job.job import job3, related_action
 
 
 class MagentoBinding(models.AbstractModel):
@@ -65,6 +65,7 @@ class MagentoBinding(models.AbstractModel):
         }
 
     @job(default_channel='root.magento')
+    # @job(default_channel='root.magento')
     @api.model
     def import_batch(self, backend, filters=None):
         """ Prepare the import of records modified on Magento """
@@ -74,8 +75,8 @@ class MagentoBinding(models.AbstractModel):
             importer = work.component(usage='batch.importer')
             return importer.run(filters=filters)
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_magento_link')
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_magento_link')
     @api.model
     def import_record(self, backend, external_id, force=False):
         """ Import a Magento record """
@@ -83,9 +84,9 @@ class MagentoBinding(models.AbstractModel):
             importer = work.component(usage='record.importer')
             return importer.run(external_id, force=force)
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def export_record(self, backend_id, fields=None):
         """ Export a record on Magento """
         self.ensure_one()
@@ -96,8 +97,8 @@ class MagentoBinding(models.AbstractModel):
                 self = self.with_context(lang=lang.code)
             return exporter.run(self, fields)
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_magento_link')
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_magento_link')
     def export_delete_record(self, backend, external_id):
         """ Delete a record on Magento """
         with backend.work_on(self._name) as work:
