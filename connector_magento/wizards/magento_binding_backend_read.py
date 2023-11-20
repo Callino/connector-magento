@@ -109,7 +109,7 @@ class MagentoBindingBackendRead(models.TransientModel):
         required=True
     )
 
-    @api.multi
+    # @api.multi
     def action_get_info(self):
         self.ensure_one()
 

@@ -55,7 +55,7 @@ class MagentoStoreview(models.Model):
     catalog_price_tax_included = fields.Boolean(string='Prices include tax')
     is_multi_company = fields.Boolean(related="backend_id.is_multi_company")
 
-    @api.multi
+    # @api.multi
     def import_sale_orders(self):
         import_start_time = datetime.now()
         for storeview in self:
