@@ -154,13 +154,13 @@
                         </page>
 
                         <page name="website" string="Websites">
-                            <!--                            <group string="Websites" col="4" colspan="4">-->
-                            <field name="website_ids" nolabel="1"/>
-                            <!--                            </group>-->
+                            <group string="Websites" col="6">
+                                <field name="website_ids" nolabel="1" colspan="5"/>
+                            </group>
                         </page>
 
                     </notebook>
-                </sheet>
+                </sheet>º
             </form>
         </field>
     </record>
@@ -233,8 +233,8 @@
                         </page>
 
                         <page name="store" string="Stores">
-                            <group string="Stores">
-                                <field name="store_ids" nolabel="1"/>
+                            <group string="Stores" col="6">
+                                <field name="store_ids" nolabel="1" colspan="5"/>
                             </group>
                         </page>
 
@@ -299,8 +299,8 @@
 
                     <notebook>
                         <page name="storeview" string="Storeviews">
-                            <group string="Storeviews">
-                                <field name="storeview_ids" nolabel="1"/>
+                            <group string="Storeviews" col="6">
+                                <field name="storeview_ids" nolabel="1" colspan="5"/>
                             </group>
                         </page>
                     </notebook>
