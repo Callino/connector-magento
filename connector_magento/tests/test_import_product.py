@@ -2,7 +2,7 @@
 # Copyright 2013-2017 Camptocamp SA
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from openerp.addons.connector.exception import InvalidDataError
+from odoo.addons.connector.exception import InvalidDataError
 from .common import MagentoSyncTestCase, recorder, mock_urlopen_image
 
 
