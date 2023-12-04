@@ -17,7 +17,6 @@ from urllib.parse import urljoin
 from odoo.addons.queue_job.job import identity_exact
 from odoo.exceptions import MissingError
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -33,9 +32,11 @@ class MagentoProductProduct(models.Model):
     def _compute_magento_backend_url(self):
         for binding in self:
             if binding._magento_backend_path:
-                binding.magento_backend_url = "%s/%s" % (urljoin(binding.backend_id.admin_location, binding._magento_backend_path), binding.magento_id)
+                binding.magento_backend_url = "%s/%s" % (
+                urljoin(binding.backend_id.admin_location, binding._magento_backend_path), binding.magento_id)
             if binding._magento_frontend_path:
-                binding.magento_frontend_url = "%s/%s" % (urljoin(binding.backend_id.location, binding._magento_frontend_path), binding.magento_id)
+                binding.magento_frontend_url = "%s/%s" % (
+                urljoin(binding.backend_id.location, binding._magento_frontend_path), binding.magento_id)
 
     @api.model
     def product_type_get(self):
@@ -52,7 +53,8 @@ class MagentoProductProduct(models.Model):
                 ('magento_product_category_id.backend_id', '=', binding.backend_id.id),
                 ('product_template_id', '=', binding.odoo_id.product_tmpl_id.id),
             ])
-            binding.magento_product_category_ids = [mpp.magento_product_category_id.id for mpp in magento_product_position_ids]
+            binding.magento_product_category_ids = [mpp.magento_product_category_id.id for mpp in
+                                                    magento_product_position_ids]
             binding.magento_product_position_ids = magento_product_position_ids
 
     def _inverse_product_category_positions(self):
@@ -84,7 +86,7 @@ class MagentoProductProduct(models.Model):
                                     string='Magento Product Type',
                                     default='simple',
                                     required=True)
-    
+
     magento_id = fields.Integer('Magento ID')
     magento_configurable_id = fields.Many2one(comodel_name='magento.product.template',
                                               string='Configurable',
@@ -92,7 +94,7 @@ class MagentoProductProduct(models.Model):
                                               ondelete='cascade',
                                               readonly=True)
     magento_name = fields.Char('Name', translate=True)
-    magento_price = fields.Float('Backend Preis', default=0.0, digits=dp.get_precision('Product Price'),)
+    magento_price = fields.Float('Backend Preis', default=0.0, digits=dp.get_precision('Product Price'), )
     magento_stock_item_ids = fields.One2many(
         comodel_name='magento.stock.item',
         inverse_name='magento_product_binding_id',
@@ -140,7 +142,7 @@ class MagentoProductProduct(models.Model):
                 websites = self.env['magento.website'].search([('backend_id', '=', binding.backend_id.id)])
             for website in websites:
                 price = binding.odoo_id.with_context(pricelist=website.pricelist_id.id).price
-                price_info += "<tr><td>%s</td><td>%s</td></tr>" % (website.name, price, )
+                price_info += "<tr><td>%s</td><td>%s</td></tr>" % (website.name, price,)
             binding.website_price_info = price_info
 
     # @api.multi
@@ -193,12 +195,15 @@ class ProductProduct(models.Model):
     def write(self, vals):
         return super(ProductProduct, self).write(vals)
 
+    def action_view_jobs(self):
+        self.ensure_one()
+        return self.product_tmpl_id.action_view_jobs()
+
 
 class ProductProductAdapter(Component):
     _name = 'magento.product.product.adapter'
     _inherit = 'magento.adapter'
     _apply_on = 'magento.product.product'
-    
 
     _magento_model = 'catalog_product'
     _magento2_model = 'products'
@@ -206,7 +211,6 @@ class ProductProductAdapter(Component):
     _magento2_name = 'product'
     _magento2_key = 'sku'
     _admin_path = '/{model}/edit/id/{id}'
-
 
     def _get_id_from_create(self, result, data=None):
         return data[self._magento2_key]

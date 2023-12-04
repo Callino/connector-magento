@@ -176,7 +176,7 @@ class ProductTemplate(models.Model):
         string='Magento Template Bindings',
     )
     magento_bind_ids = fields.One2many(
-        related='product_variant_id.magento_bind_ids',
+        related='product_variant_ids.magento_bind_ids',
         string='Magento Bindings',
     )
     auto_create_variants = fields.Boolean('Auto Create Variants', default=True)
@@ -185,7 +185,6 @@ class ProductTemplate(models.Model):
     open_job_count = fields.Integer(string='Open Jobs', compute='_compute_job_counts', store=False)
     failed_job_count = fields.Integer(string='Failed Jobs', compute='_compute_job_counts', store=False)
 
-    # @api.multi
     def action_view_jobs(self):
         self.ensure_one()
         action = self.env.ref('queue_job.action_queue_job').read()[0]

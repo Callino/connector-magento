@@ -492,7 +492,7 @@
 								<group string="Sales / Accounting">
 									<field name="sale_prefix" placeholder="mag-" />
 									<field name="account_analytic_id"
-										groups="sale.group_analytic_accounting" />
+										groups="analytic.group_analytic_accounting" />
 									<field name="fiscal_position_id" />
 									<field name="rounding_diff_account_id"/>
 									<field name="rounding_diff_product_id"/>
