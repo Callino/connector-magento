@@ -29,8 +29,8 @@ class MagentoProductProduct(models.Model):
                                        string='Attribute set')
     special_price_active = fields.Boolean('Special Price', default=False)
     visibility = fields.Selection([
-        ('1', 'Einzel nicht sichtbar'),
-        ('4', 'Katalog, Suche'),
+        ('1', 'Mo visible individually'),   # Not visible individually
+        ('4', 'Catalog, Search'),           # Catalog, Search
     ], string="Visibility", default='4')
     
     @api.multi
