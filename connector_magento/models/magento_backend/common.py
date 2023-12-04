@@ -223,6 +223,7 @@ class MagentoBackend(models.Model):
 
     # @api.multi
     def add_checkpoint(self, record):
+        """ Add a checkpoint for the given record """
         self.ensure_one()
         record.ensure_one()
         # return add_checkpoint(self.env, record._name, record.id,
