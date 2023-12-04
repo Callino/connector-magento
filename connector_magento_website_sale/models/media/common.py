@@ -23,7 +23,7 @@ class MagentoProductMedia(models.Model):
             media.local_image = media.image_image
 
     odoo_id = fields.Many2one('product.image', string="Product Image")
-    image_image = fields.Binary(related='odoo_id.image')
+    image_image = fields.Binary(related='odoo_id.image_1920')
 
 
 class ProductImage(models.Model):

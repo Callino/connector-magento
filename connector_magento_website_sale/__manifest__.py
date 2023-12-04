@@ -8,7 +8,7 @@
  'depends': ['connector_magento',
              'website_sale',
              'connector_magento_product_catalog',
-             'product_variant_multi_image',
+             # 'product_variant_multi_image',
              ],
  'author': "Callino,Odoo Community Association (OCA)",
  'license': 'AGPL-3',

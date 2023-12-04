@@ -18,7 +18,7 @@ class MagentoProductCategory(models.Model):
                                       required=False,
                                       ondelete='cascade')
 
-    @api.multi
+    # @api.mult
     def write(self, vals):
         result = super(MagentoProductCategory, self).write(vals)
         if 'magento_parent_id' in vals:
@@ -31,13 +31,13 @@ class MagentoProductCategory(models.Model):
                     mpc.public_categ_id.parent_id = mpc.magento_parent_id.public_categ_id.id
         return result
 
-    @api.multi
+    # @api.mult
     def _check_public_category_template_ids(self, tmpl_ids):
         self.ensure_one()
         for template in self.env['product.template'].search([('id', 'in', tmpl_ids), '!', ('public_categ_ids', 'child_of', self.public_categ_id.id)]):
             _logger.info("Product %s does not have category %s set !", template.name, self.name)
 
-    @api.multi
+    # @api.mult
     def update_products(self):
         '''
         We do need to overwrite this here complete
