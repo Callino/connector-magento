@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 import uuid
 import requests
 from odoo.addons.queue_job.job import identity_exact
-from odoo.addons.queue_job.job import job, related_action
+# from odoo.addons.queue_job.job import job, related_action
 from slugify import slugify
 import magic
 import base64
@@ -57,8 +57,8 @@ class MagentoProductMedia(models.Model):
                                               required=False,
                                               ondelete='cascade')
     magento_exists = fields.Boolean('Magento Exists', default=False)
-    p_image = fields.Binary(related='magento_product_id.odoo_id.image')
-    pt_image = fields.Binary(related='magento_product_tmpl_id.odoo_id.image')
+    p_image = fields.Binary(related='magento_product_id.odoo_id.image_1920')
+    pt_image = fields.Binary(related='magento_product_tmpl_id.odoo_id.image_1920')
     label = fields.Char(string="Label")
     type = fields.Selection([
         ('product_image', 'Product Image'),
@@ -119,7 +119,7 @@ class MagentoProductMedia(models.Model):
             i += 1
         return filename
 
-    @api.multi
+    # @api.multi
     def recalc_filename(self):
         mime = magic.Magic(mime=True)
         for media in self:
@@ -140,12 +140,12 @@ class MagentoProductMedia(models.Model):
                 'mimetype': mimetype,
             })
 
-    @job(default_channel='root.magento.image', retry_pattern={
-        1: 1 * 60,
-        5: 5 * 60,
-    })
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento.image', retry_pattern={
+    #     1: 1 * 60,
+    #     5: 5 * 60,
+    # })
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def export_record(self, backend_id, fields=None):
         try:
             return super(MagentoProductMedia, self).export_record(backend_id, fields)
@@ -153,14 +153,14 @@ class MagentoProductMedia(models.Model):
             _logger.error("Record not found anymore - so the job is to be set to done")
             return
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def sync_from_magento(self):
         for binding in self:
             binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def run_sync_from_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
@@ -195,12 +195,7 @@ class ProductMediaAdapter(Component):
     _magento2_key = 'entry_id'
 
     def _read_url(self, id, sku):
-        def escape(term):
-            if isinstance(term, str):
-                return urllib.parse.quote(term.encode('utf-8'), safe='')
-            return term
-
-        return 'products/%s/media/%s' % (escape(sku), id)
+        return 'products/%s/media/%s' % (self.escape(sku), id)
 
     def read(self, id, sku, attributes=None, storeview_code=None, binding=None):
         if self.work.magento_api._location.version == '2.0':

@@ -27,7 +27,7 @@
 			model="ir.actions.act_window">
 			<field name="name">Add product to Backend</field>
 			<field name="res_model">connector_magento.add_backend.wizard</field>
-			<field name="view_type">form</field>
+<!--			<field name="view_type">form</field>-->
 			<field name="view_mode">form</field>
 			<field name="target">new</field>
 		</record>

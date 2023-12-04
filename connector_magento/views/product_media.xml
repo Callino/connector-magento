@@ -7,8 +7,8 @@
 		<field name="arch" type="xml">
 			<form string="Magento Product Media">
 				<header>
-					<button name="sync_to_magento" type="object" string="Force Sync Odoo -> Magento" />
-					<button type="object" name="run_sync_to_magento" string="Instead Force Sync Odoo -> Magento" groups="base.group_no_one"/>
+<!--					<button name="sync_to_magento" type="object" string="Force Sync Odoo -> Magento" />-->
+<!--					<button type="object" name="run_sync_to_magento" string="Instead Force Sync Odoo -> Magento" groups="base.group_no_one"/>-->
 				</header>
 				<sheet>
 					<field name="p_image" widget="image" class="oe_avatar" readonly="1" attrs="{'invisible': ['|',('magento_product_id', '=', False),('type', '!=', 'product_image')]}"/>

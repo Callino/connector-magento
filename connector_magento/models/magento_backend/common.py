@@ -12,7 +12,7 @@ from odoo.tools import ustr
 from odoo.exceptions import UserError
 
 from odoo.addons.component.core import Component
-from odoo.addons.connector.models import checkpoint
+# from odoo.addons.connector.models import checkpoint
 # from odoo.addons.connector.models.checkpoint import add_checkpoint
 from ...components.backend_adapter import MagentoLocation, MagentoAPI
 from odoo.addons.queue_job.job import identity_exact
@@ -54,12 +54,12 @@ class MagentoBackend(models.Model):
                 ('checked', 'Checked'),
                 ('production', 'In Production')]
 
-    @api.multi
+    # @api.multi
     def button_reset_to_draft(self):
         self.ensure_one()
         self.write({'state': 'draft'})
 
-    @api.multi
+    # @api.multi
     def _check_connection(self):
         self.ensure_one()
         with self.work_on('magento.backend') as work:
@@ -67,7 +67,7 @@ class MagentoBackend(models.Model):
             with api_handle_errors('Connection failed'):
                 component.head()
 
-    @api.multi
+    # @api.multi
     def button_check_connection(self):
         # TODO : use self._check_connection() as in connector prestashop
         # raise exceptions.UserError(_('Connection successful'))
@@ -542,14 +542,14 @@ class MagentoBackend(models.Model):
         return True
 
     # @api.multi
-    @api.multi
+    # @api.multi
     def import_tax_classes(self):
         """ Import tax class """
         for backend in self:
             self.env['magento.account.tax'].import_batch(backend)
         return True
 
-    @api.multi
+    # @api.multi
     def import_customer_groups(self):
         for backend in self:
             backend.check_magento_structure()
@@ -633,7 +633,7 @@ class MagentoBackend(models.Model):
         magento_stock_items.sync_to_magento(True)
         return True
 
-    @api.multi
+    # @api.multi
     def update_product_prices(self):
         magento_products = self.env['magento.product.product'].search([
             ('backend_id', 'in', self.ids),
@@ -748,21 +748,21 @@ class MagentoConfigSpecializer(models.AbstractModel):
     def _parent(self):
         return getattr(self, self._parent_name)
 
-    @api.multi
+    # @api.multi
     def _compute_sale_prefix(self):
         for this in self:
             this.sale_prefix = (
                 this.specific_sale_prefix or
                 this._parent.sale_prefix)
 
-    @api.multi
+    # @api.multi
     def _compute_pricelist_id(self):
         for this in self:
             this.pricelist_id = (
                 this.specific_pricelist_id or
                 this._parent.pricelist_id)
 
-    @api.multi
+    # @api.multi
     # @api.multi
     def _compute_account_analytic_id(self):
         for this in self:

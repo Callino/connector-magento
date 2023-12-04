@@ -101,14 +101,14 @@ class MagentoResPartner(models.Model):
              "is not merged with the billing address.",
     )
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def sync_from_magento(self):
         for binding in self:
             binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def run_sync_from_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:

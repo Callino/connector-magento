@@ -5,7 +5,7 @@
 import logging
 from odoo import api, models, fields
 from odoo.addons.component.core import Component
-from odoo.addons.queue_job.job import job, related_action
+# from odoo.addons.queue_job.job import job, related_action
 from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
 import urllib.request, urllib.parse, urllib.error
 import odoo.addons.decimal_precision as dp
@@ -126,16 +126,16 @@ class MagentoProductTemplate(models.Model):
          ),
     ]
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def sync_from_magento(self):
         for binding in self:
             delayed = binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
             job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
             binding.odoo_id.with_context(connector_no_export=True).job_ids += job
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def run_sync_from_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
@@ -185,7 +185,7 @@ class ProductTemplate(models.Model):
     open_job_count = fields.Integer(string='Open Jobs', compute='_compute_job_counts', store=False)
     failed_job_count = fields.Integer(string='Failed Jobs', compute='_compute_job_counts', store=False)
 
-    @api.multi
+    # @api.multi
     def action_view_jobs(self):
         self.ensure_one()
         action = self.env.ref('queue_job.action_queue_job').read()[0]
@@ -205,14 +205,14 @@ class ProductTemplate(models.Model):
         
         return super(ProductTemplate, me).create(vals)
 
-    @api.multi
+    # @api.multi
     def create_variant_ids(self):
         if self.env.context.get('create_product_product', False):
             # Do not try to create / update variants
             return True
         return super(ProductTemplate, self).create_variant_ids()
 
-    @api.multi
+    # @api.multi
     def write(self, vals):
         for tpl in self:
             if vals.get('auto_create_variants', tpl.auto_create_variants):

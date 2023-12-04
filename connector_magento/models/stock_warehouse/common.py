@@ -4,7 +4,7 @@
 import logging
 import xmlrpc.client
 from odoo import api, models, fields
-from odoo.addons.queue_job.job import job, related_action
+# from odoo.addons.queue_job.job import job, related_action
 from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.component.core import Component
 from odoo import tools
@@ -40,9 +40,9 @@ class MagentoStockWarehouse(models.Model):
         string="Magento Stock Items",
     )
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def export_stock(self):
         """ Export the the current stock items """
         self.ensure_one()
@@ -51,9 +51,9 @@ class MagentoStockWarehouse(models.Model):
             exporter = work.component(usage='record.exporter')
             return exporter.run(self)
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def import_stock(self):
         """ Export a complete or partial delivery order. """
         # with_tracking is True to keep a backward compatibility (jobs that

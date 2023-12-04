@@ -3,7 +3,7 @@
 
 from odoo import api, models, fields
 from urllib.parse import urljoin
-from odoo.addons.queue_job.job import related_action
+# from odoo.addons.queue_job.job import related_action
 # # from odoo.addons.queue_job.job import job3, related_action
 
 
@@ -64,7 +64,7 @@ class MagentoBinding(models.AbstractModel):
             "target": "magento_frontend",
         }
 
-    @job(default_channel='root.magento')
+    # @job(default_channel='root.magento')
     # @job(default_channel='root.magento')
     @api.model
     def import_batch(self, backend, filters=None):

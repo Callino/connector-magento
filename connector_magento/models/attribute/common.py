@@ -1,7 +1,8 @@
 import logging
 from odoo import models, fields, api
 from odoo.addons.component.core import Component
-from odoo.addons.queue_job.job import job, related_action, identity_exact
+# from odoo.addons.queue_job.job import job, related_action, identity_exact
+from odoo.addons.queue_job.job import identity_exact
 
 
 _logger = logging.getLogger(__name__)
@@ -67,21 +68,21 @@ class MagentoProductAttribute(models.Model):
         '''
         return super(MagentoProductAttribute, self).create(vals)
 
-    @api.multi
+    # @api.multi
     def export_product_attribute_button(self):
         self.ensure_one()
         self.with_delay(priority=20,
                         identity_key=identity_exact).export_product_attribute()
 
-    @api.multi
+    # @api.multi
     def import_product_attribute_button(self):
         self.ensure_one()
         self.with_delay(priority=20,
                         identity_key=identity_exact).import_product_attribute()
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def export_product_attribute(self, fields=None):
         """ Export a simple attribute. """
         self.ensure_one()
@@ -89,9 +90,9 @@ class MagentoProductAttribute(models.Model):
             exporter = work.component(usage='record.exporter')
             return exporter.run(self)
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.multi
     def import_product_attribute(self):
         """ Import a simple attribute. """
         self.ensure_one()

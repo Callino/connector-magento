@@ -9,7 +9,7 @@ from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
 import urllib.request, urllib.parse, urllib.error
 import odoo.addons.decimal_precision as dp
 from urllib.parse import urljoin
-from odoo.addons.queue_job.job import job
+# from odoo.addons.queue_job.job import job
 from odoo.addons.queue_job.job import identity_exact
 
 _logger = logging.getLogger(__name__)
@@ -84,14 +84,14 @@ class MagentoProductBundle(models.Model):
          'Duplicate binding of product detected, maybe SKU changed ?')]
 
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def sync_from_magento(self):
         for binding in self:
             binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def run_sync_from_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
@@ -170,7 +170,7 @@ class ProductProduct(models.Model):
         string='Magento Bundle Bindings',
     )
 
-    @api.multi
+    # @api.multi
     def _need_procurement(self):
         # Bundle product does not need procurment
         for product in self:

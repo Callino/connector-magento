@@ -2,9 +2,12 @@
 <odoo>
 
     <act_window id="attribute_add_backend_action"
-        name="Add Backend Wizard" src_model="product.attribute"
+        name="Add Backend Wizard"
         res_model="connector_magento.add_backend.wizard"
-        key2="client_action_multi" target="new" view_mode="form" multi="True" />
+                target="new" view_mode="form"/>
+<!--                src_model="product.attribute"-->
+<!--                key2="client_action_multi" -->
+<!--                multi="True" />-->
 
     <record id="attribute_tree_view" model="ir.ui.view">
         <field name="name">attribute_tree_view</field>
@@ -30,18 +33,18 @@
         <field name="model">product.attribute</field>
         <field name="inherit_id" ref="product.product_attribute_view_form" />
         <field name="arch" type="xml">
-            <xpath expr="//form/group" position="before">
+            <field name="number_related_products" position="before">
                 <header>
                     <button type="action" name="%(connector_magento.attribute_add_backend_action)d" string="Export to magento"/>
                 </header>
-            </xpath>
+            </field>
 
-            <group name="values_ids" position="before">
+            <field name="value_ids" position="before">
                 <field name="magento_bind_ids" readonly="1"/>
-            </group>
-            <group name="values_ids" position="inside">
+            </field>
+            <field name="value_ids" position="before">
                 <field name="create_variant"/>
-            </group>
+            </field>
         </field>
     </record>
 

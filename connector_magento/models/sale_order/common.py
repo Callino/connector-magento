@@ -289,7 +289,7 @@ class SaleOrderLine(models.Model):
         return [data]
 
 
-    @api.multi
+    # @api.multi
     def _compute_qty_delivered(self):
         lines_without_bundles = self.filtered(lambda l: l.product_id.type != 'bundle')
         super(SaleOrderLine, lines_without_bundles)._compute_qty_delivered()

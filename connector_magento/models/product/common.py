@@ -8,7 +8,7 @@ import logging
 
 from odoo import models, fields, api
 from odoo.addons.component.core import Component
-from odoo.addons.queue_job.job import job, related_action
+# from odoo.addons.queue_job.job import job, related_action
 
 from odoo.models import NewId
 from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
@@ -131,7 +131,7 @@ class MagentoProductProduct(models.Model):
          ),
     ]
 
-    @api.multi
+    # @api.multi
     def _compute_website_prices(self):
         for binding in self:
             price_info = "<table><tr><th>Website</th><th>Price</th></tr>"
@@ -143,28 +143,28 @@ class MagentoProductProduct(models.Model):
                 price_info += "<tr><td>%s</td><td>%s</td></tr>" % (website.name, price, )
             binding.website_price_info = price_info
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def sync_from_magento(self):
         for binding in self:
             binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def run_sync_from_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
             importer = work.component(usage='record.importer')
             return importer.run(self.external_id, force=True)
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def sync_prices_to_magento(self):
         for binding in self:
             binding.with_delay(identity_key=identity_exact).run_sync_prices_to_magento()
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def run_sync_prices_to_magento(self):
         self.ensure_one()
         try:
@@ -189,7 +189,7 @@ class ProductProduct(models.Model):
         string='Magento Bindings',
     )
 
-    @api.multi
+    # @api.multi
     def write(self, vals):
         return super(ProductProduct, self).write(vals)
 

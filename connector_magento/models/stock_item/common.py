@@ -3,7 +3,7 @@
 
 import logging
 from odoo import api, models, fields
-from odoo.addons.queue_job.job import job, related_action
+# from odoo.addons.queue_job.job import job, related_action
 from odoo.addons.component.core import Component
 from odoo.addons.queue_job.job import identity_exact
 from odoo.exceptions import MissingError
@@ -78,22 +78,22 @@ class MagentoStockItem(models.Model):
         required=True,
     )
 
-    @api.multi
-    @job(default_channel='root.magento.stock')
+    # @api.multi
+    # @job(default_channel='root.magento.stock')
     def sync_from_magento(self):
         for binding in self:
             binding.with_delay(priority=5, identity_key=identity_exact).run_sync_from_magento()
 
-    @api.multi
-    @job(default_channel='root.magento.stock')
+    # @api.multi
+    # @job(default_channel='root.magento.stock')
     def run_sync_from_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
             importer = work.component(usage='record.importer')
             return importer.run(self.external_id, force=True, binding=self)
 
-    @api.multi
-    @job(default_channel='root.magento.stock')
+    # @api.multi
+    # @job(default_channel='root.magento.stock')
     def sync_to_magento(self, force=False):
         for binding in self:
             if force or binding.should_export:
@@ -104,8 +104,8 @@ class MagentoStockItem(models.Model):
                 else:
                     binding.magento_product_binding_id.odoo_id.product_tmpl_id.with_context(connector_no_export=True).job_ids += job
 
-    @api.multi
-    @job(default_channel='root.magento.stock')
+    # @api.multi
+    # @job(default_channel='root.magento.stock')
     def run_sync_to_magento(self):
         _logger.info("Stock Item sync to magento got called, ")
         self.ensure_one()

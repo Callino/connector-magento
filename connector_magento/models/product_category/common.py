@@ -10,7 +10,7 @@ from odoo import models, fields, api
 from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.component.core import Component
 from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
-from odoo.addons.queue_job.job import job, related_action
+# from odoo.addons.queue_job.job import job, related_action
 from odoo.addons.queue_job.job import identity_exact
 
 _logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ class MagentoProductCategory(models.Model):
         string="Product Positions"
     )
 
-    @api.multi
+    # @api.multi
     def write(self, vals):
         result = super(MagentoProductCategory, self).write(vals)
         if 'magento_parent_id' in vals:
@@ -76,29 +76,29 @@ class MagentoProductCategory(models.Model):
                     mpc.odoo_id.parent_id = mpc.magento_parent_id.odoo_id.id
         return result
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def sync_from_magento(self):
         for binding in self:
             binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def sync_from_magento_product_links(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
             importer = work.component(usage='record.importer')
             return importer._import_categorie_product_positions(self)
 
-    @api.multi
-    @job(default_channel='root.magento')
+    # @api.multi
+    # @job(default_channel='root.magento')
     def run_sync_from_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
             importer = work.component(usage='record.importer')
             return importer.run(self.external_id, force=True)
 
-    @api.multi
+    # @api.multi
     def update_products(self):
         for mcategory in self:
             # Get tmpl_ids from magento.product.template
