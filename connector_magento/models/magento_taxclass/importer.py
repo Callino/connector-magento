@@ -65,3 +65,9 @@ class AccountTaxImportMapper(Component):
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
+
+    @mapping
+    def defaults(self, record):
+        return {'name': '{}-{}'.format(record['class_name'],record['class_type']),
+                'amount': 0.0,
+                }
