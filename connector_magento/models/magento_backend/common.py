@@ -9,6 +9,7 @@ from contextlib import contextmanager
 
 from datetime import datetime, timedelta
 from odoo import models, fields, api, _
+from odoo.tools import ustr
 from odoo.exceptions import UserError
 
 from odoo.addons.component.core import Component
@@ -111,12 +112,12 @@ class MagentoBackend(models.Model):
     )
     password = fields.Char(
         string='Password',
-        help="Webservice password, or authentication token when connecting to"
-              " Magento 2.0")
-    verify_ssl = fields.Boolean(
-        string="Verify SSL certficate",
-        default=True,
-        help="Only for Magento 2 REST API")
+        help="Webservice password",
+    )
+    token = fields.Char(
+        help=('Authentication token for Magento 2.0+. See https://devdocs.'
+              ' magento.com/guides/v2.3/get-started/authentication'
+              '/gs-authentication-token.html'))
     use_auth_basic = fields.Boolean(
         string='Use HTTP Auth Basic',
         help="Use a Basic Access Authentication for the API. "
@@ -132,6 +133,10 @@ class MagentoBackend(models.Model):
         string='Basic Auth. Password',
         help="Basic access authentication web server side password",
     )
+    verify_ssl = fields.Boolean(
+        string='Verify SSL certificate',
+        default=True,
+        help="Only for Magento 2.0+")
     sale_prefix = fields.Char(
         string='Sale Prefix',
         help="A prefix put before the name of imported sales orders.\n"
@@ -303,9 +308,10 @@ class MagentoBackend(models.Model):
             self.location,
             self.username,
             self.password,
+            self.token,
             self.version,
-            use_custom_api_path=self.use_custom_api_path,
-            verify_ssl=self.verify_ssl,
+            self.verify_ssl,
+            use_custom_api_path=self.use_custom_api_path
         )
         if self.use_auth_basic:
             magento_location.use_auth_basic = True
@@ -342,11 +348,11 @@ class MagentoBackend(models.Model):
                     self.env[model_name].import_batch(backend)
             return True
         except Exception as e:
-            _logger.error(str(e), exc_info=True)
+            _logger.error(ustr(e), exc_info=True)
             raise UserError(
                 _("Check your configuration, we can't get the data. "
                   "Here is the error:\n%s") %
-                str(e))
+                ustr(e))
 
     @api.multi
     def button_resync_products(self):
@@ -611,6 +617,12 @@ class MagentoBackend(models.Model):
             backend.check_magento_structure()
             self.env['magento.product.attributes.set'].with_delay(identity_key=identity_exact).import_batch(backend)
         return True
+    def _domain_for_update_product_stock_qty(self):
+        return [
+            ('backend_id', 'in', self.ids),
+            ('type', '!=', 'service'),
+            ('no_stock_sync', '=', False),
+        ]
 
     @api.multi
     def update_product_stock_qty(self):
@@ -669,6 +681,7 @@ class MagentoBackend(models.Model):
 
 class MagentoConfigSpecializer(models.AbstractModel):
     _name = 'magento.config.specializer'
+    _description = 'Magento Configuration Specializer Mixin'
 
     specific_account_analytic_id = fields.Many2one(
         comodel_name='account.analytic.account',

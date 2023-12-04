@@ -42,9 +42,9 @@
 					</group>
 					<group string="Options" name="options">
 						<field name="account_analytic_id"
-							groups="sale.group_analytic_accounting" class="oe_read_only" />
+							groups="analytic.group_analytic_accounting" class="oe_read_only" />
 						<field name="specific_account_analytic_id"
-							groups="sale.group_analytic_accounting" class="oe_edit_only" />
+							groups="analytic.group_analytic_accounting" class="oe_edit_only" />
 						<field name="fiscal_position_id" class="oe_read_only" />
 						<field name="specific_fiscal_position_id"
 							class="oe_edit_only" />
@@ -117,10 +117,8 @@
 						<field name="website_id" />
 					</group>
 					<group string="Options">
-						<field name="account_analytic_id"
-							groups="sale.group_analytic_accounting" class="oe_read_only" />
-						<field name="specific_account_analytic_id"
-							groups="sale.group_analytic_accounting" class="oe_edit_only" />
+                        <field name="account_analytic_id" groups="analytic.group_analytic_accounting" class="oe_read_only"/>
+                        <field name="specific_account_analytic_id" groups="analytic.group_analytic_accounting" class="oe_edit_only" />
 						<field name="fiscal_position_id" class="oe_read_only" />
 						<field name="specific_fiscal_position_id"
 							class="oe_edit_only" />
@@ -183,10 +181,8 @@
 						<field name="no_sales_order_sync" />
 					</group>
 					<group string="Options">
-						<field name="account_analytic_id"
-							groups="sale.group_analytic_accounting" class="oe_read_only" />
-						<field name="specific_account_analytic_id"
-							groups="sale.group_analytic_accounting" class="oe_edit_only" />
+                        <field name="account_analytic_id" groups="analytic.group_analytic_accounting" class="oe_read_only"/>
+                        <field name="specific_account_analytic_id" groups="analytic.group_analytic_accounting" class="oe_edit_only" />
 						<field name="fiscal_position_id" class="oe_read_only" />
 						<field name="specific_fiscal_position_id"
 							class="oe_edit_only" />
@@ -316,9 +312,10 @@
 							<field name="location"
 								placeholder="e.g. http://my.magento.com" />
 							<field name="use_custom_api_path" />
-							<field name="verify_ssl" />
-							<field name="username" />
-							<field name="password" password="1" />
+							<field name="verify_ssl" attrs="{'invisible': [('version', '=', '1.7')]}" />
+							<field name="username" attrs="{'invisible': [('version', '!=', '1.7')]}" />
+							<field name="password" attrs="{'invisible': [('version','!=','1.7')]}" />
+							<field name="token" password="1" attrs="{'invisible': [('version','=','1.7')]}" />
 						</group>
 						<group colspan="2">
 							<group string="HTTP authentication">

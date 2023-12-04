@@ -4,8 +4,9 @@
 
 import socket
 import logging
+import requests
+from urllib.parse import quote_plus
 import xmlrpc.client
-import urllib.request, urllib.parse, urllib.error
 
 from odoo.addons.component.core import AbstractComponent
 from odoo.addons.queue_job.exception import RetryableJobError
@@ -31,14 +32,15 @@ class MagentoNotFoundError(Exception):
 
 class MagentoLocation(object):
 
-    def __init__(self, location, username, password, version,
-                 use_custom_api_path=False, verify_ssl=True):
+    def __init__(self, location, username, password, token, version,
+                 verify_ssl, use_custom_api_path=False):
         self._location = location
         self.username = username
         self.password = password
-        self.use_custom_api_path = use_custom_api_path
-        self.version = version
+        self.token = token
         self.verify_ssl = verify_ssl
+        self.version = version
+        self.use_custom_api_path = use_custom_api_path
 
         self.use_auth_basic = False
         self.auth_basic_username = None
@@ -56,6 +58,38 @@ class MagentoLocation(object):
         return location
 
 
+class Magento2Client(object):
+
+    def __init__(self, url, token, verify_ssl=True, use_custom_api_path=False):
+        if not use_custom_api_path:
+            url += '/' if not url.endswith('/') else ''
+            url += 'index.php/rest/V1'
+        self._url = url
+        self._token = token
+        self._verify_ssl = verify_ssl
+
+    def call(self, resource_path, arguments, http_method=None, storeview=None):
+        if resource_path is None:
+            _logger.exception('Magento2 REST API called without resource path')
+            raise NotImplementedError
+        url = '%s/%s' % (self._url, resource_path)
+        if storeview:
+            # https://github.com/magento/magento2/issues/3864
+            url = url.replace('/rest/V1/', '/rest/%s/V1/' % storeview)
+        if http_method is None:
+            http_method = 'get'
+        function = getattr(requests, http_method)
+        headers = {'Authorization': 'Bearer %s' % self._token}
+        kwargs = {'headers': headers, 'verify': self._verify_ssl}
+        if http_method == 'get':
+            kwargs['params'] = arguments
+        elif arguments is not None:
+            kwargs['json'] = arguments
+        res = function(url, **kwargs)
+        res.raise_for_status()
+        return res.json()
+
+
 class MagentoAPI(object):
 
     def __init__(self, location):
@@ -69,29 +103,40 @@ class MagentoAPI(object):
     @property
     def api(self):
         if self._api is None:
-            custom_url = self._location.use_custom_api_path
-            protocol = 'rest' if self._location.version == '2.0' else 'xmlrpc'
-            api = magentolib.API(
-                self._location.location,
-                self._location.username,
-                self._location.password,
-                protocol=protocol,
-                full_url=custom_url,
-                verify_ssl=self._location.verify_ssl,
-            )
-            api.__enter__()
+            if self._location.version == '1.7':
+                api = magentolib.API(
+                    self._location.location,
+                    self._location.username,
+                    self._location.password,
+                    full_url=self._location.use_custom_api_path
+                )
+                api.__enter__()
+            else:
+                api = Magento2Client(
+                    self._location.location,
+                    self._location.token,
+                    self._location.verify_ssl,
+                    use_custom_api_path=self._location.use_custom_api_path
+                )
             self._api = api
         return self._api
+
+    def api_call(self, method, arguments, http_method=None, storeview=None):
+        """ Adjust available arguments per API """
+        if isinstance(self.api, magentolib.API):
+            return self.api.call(method, arguments)
+        return self.api.call(method, arguments, http_method=http_method,
+                             storeview=storeview)
 
     def __enter__(self):
         # we do nothing, api is lazy
         return self
 
-    def __exit__(self, type, value, traceback):
-        if self._api is not None:
-            self._api.__exit__(type, value, traceback)
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self._api is not None and hasattr(self._api, '__exit__'):
+            self._api.__exit__(exc_type, exc_value, traceback)
 
-    def call(self, method, arguments=None, http_method=None, storeview=None):
+    def call(self, method, arguments, http_method=None, storeview=None):
         try:
             # When Magento is installed on PHP 5.4+, the API
             # may return garble data if the arguments contain
@@ -101,7 +146,7 @@ class MagentoAPI(object):
                     arguments.pop()
             start = datetime.now()
             try:
-                result = self.api.call(method, arguments, http_method=http_method, storeview=storeview)
+                result = self.api_call(method, arguments, http_method=http_method, storeview=storeview)
             except Exception as e:
                 try:
                     arguments_string = json.dumps(arguments)
@@ -162,7 +207,7 @@ class MagentoCRUDAdapter(AbstractComponent):
         and returns a list of ids """
         raise NotImplementedError
 
-    def read(self, id, attributes=None, binding=None):
+    def read(self, external_id, attributes=None, storeview=None):
         """ Returns the information of a record """
         raise NotImplementedError
 
@@ -175,15 +220,16 @@ class MagentoCRUDAdapter(AbstractComponent):
         """ Create a record on the external system """
         raise NotImplementedError
 
-    def write(self, id, data):
+    def write(self, external_id, data):
         """ Update records on the external system """
         raise NotImplementedError
 
-    def delete(self, id):
+    def delete(self, external_id):
         """ Delete a record on the external system """
         raise NotImplementedError
 
-    def _call(self, method, arguments=None, http_method=None, storeview=None):
+    def _call(self, method, arguments=None,
+              http_method=None, storeview=None):
         try:
             magento_api = getattr(self.work, 'magento_api')
         except AttributeError:
@@ -193,7 +239,9 @@ class MagentoCRUDAdapter(AbstractComponent):
                 'Backend Adapter.'
             )
         _logger.debug("Call magento API with method %s and arguments %s , http_method %s and storeview %s" % (method, arguments, http_method, storeview))
-        return magento_api.call(method, arguments, http_method, storeview)
+        # return magento_api.call(method, arguments, http_method, storeview)
+        return magento_api.call(
+            method, arguments, http_method=http_method, storeview=storeview)
 
 
 class GenericAdapter(AbstractComponent):
@@ -206,7 +254,8 @@ class GenericAdapter(AbstractComponent):
     _magento2_search = None
     _magento2_key = None
     _admin_path = None
-    
+    _admin2_path = None
+
     @staticmethod
     def get_searchCriteria(filters):
         """ Craft Magento 2.0 searchCriteria from filters, for example:
@@ -227,12 +276,12 @@ class GenericAdapter(AbstractComponent):
         operators = [
             'eq', 'finset', 'from', 'gt', 'gteq', 'in', 'like', 'lt',
             'lteq', 'moreq', 'neq', 'nin', 'notnull', 'null', 'to']
-        for field in list(filters.keys()):
-            for op in list(filters[field].keys()):
+        for field in filters.keys():
+            for op in filters[field].keys():
                 assert op in operators
                 value = filters[field][op]
                 if isinstance(value, (list, set)):
-                    value = ','.join([str(v) for v in value])
+                    value = ','.join(value)
                 res.update({
                     expr % (count, 'field'): field,
                     expr % (count, 'condition_type'): op,
@@ -240,52 +289,50 @@ class GenericAdapter(AbstractComponent):
                 })
                 count += 1
         _logger.debug('searchCriteria %s from %s', res, filters)
-        return res if res else {'searchCriteria': '{}'}
-
+        return res if res else {'searchCriteria': ''}
 
     def search(self, filters=None):
         """ Search records according to some criterias
         and returns a list of unique identifiers.
 
-        2.0: query the resource to return the key field for all records.
-        Filter out the 0, which designates a magic value, such as the global
-        scope for websites, store groups and store views, or the category for
-        customers that have not yet logged in.
+        In the case of Magento 2.x: query the resource to return the key field
+        for all records. Filter out the 0, which designates a magic value,
+        such as the global scope for websites, store groups and store views, or
+        the category for customers that have not yet logged in.
 
         /search APIs return a dictionary with a top level 'items' key.
         Repository APIs return a list of items.
 
         :rtype: list
         """
-        if self.work.magento_api._location.version == '2.0':
-            key = self._magento2_key or 'id'
-            params = {}
-            if self._magento2_search:
-                params['fields'] = 'items[%s]' % key
-                params.update(self.get_searchCriteria(filters))
-            else:
-                params['fields'] = key
-                if filters:
-                    raise NotImplementedError  # Unexpected much?
-            res = self._call(
-                self._magento2_search or self._magento2_model,
-                params)
-            if 'items' in res:
-                res = res['items'] or []
-            return [item[key] for item in res if item[key] != 0]
+        if self.collection.version == '1.7':
+            return self._call('%s.search' % self._magento_model,
+                              [filters] if filters else [{}])
+        key = self._magento2_key or 'id'
+        params = {}
+        if self._magento2_search:
+            params['fields'] = 'items[%s]' % key
+            params.update(self.get_searchCriteria(filters))
+        else:
+            params['fields'] = key
+            if filters:
+                raise NotImplementedError
+        res = self._call(
+            self._magento2_search or self._magento2_model,
+            params)
+        if 'items' in res:
+            res = res['items'] or []
+        return [item[key] for item in res if item[key] != 0]
 
-        # 1.x
-        return self._call('%s.search' % self._magento_model,
-                          [filters] if filters else [{}])
+    @staticmethod
+    def escape(term):
+        if isinstance(term, str):
+            return quote_plus(term)
+        return term
 
     def _read_url(self, id, binding=None):
-        def escape(term):
-            if isinstance(term, str):
-                return urllib.parse.quote(term.encode('utf-8'), safe='')
-            return term
-
         if self._magento2_key:
-            return '%s/%s' % (self._magento2_model, escape(id))
+            return '%s/%s' % (self._magento2_model, self.escape(id))
         else:
             return '%s' % (self._magento2_model)
 
@@ -377,12 +424,7 @@ class GenericAdapter(AbstractComponent):
                           [int(id), data])
 
     def _delete_url(self, id, binding=None):
-        def escape(term):
-            if isinstance(term, str):
-                return urllib.parse.quote(term.encode('utf-8'), safe='')
-            return term
-
-        return '%s/%s' % (self._magento2_model, escape(id))
+        return '%s/%s' % (self._magento2_model, self.escape(id))
 
     def delete(self, id, binding=None):
         """ Delete a record on the external system """
@@ -395,16 +437,22 @@ class GenericAdapter(AbstractComponent):
             return res
         return self._call('%s.delete' % self._magento_model, [int(id)])
 
-    def admin_url(self, id):
+    def admin_url(self, external_id):
         """ Return the URL in the Magento admin for a record """
-        if self._admin_path is None:
-            raise ValueError('No admin path is defined for this record')
         backend = self.backend_record
         url = backend.admin_location
         if not url:
             raise ValueError('No admin URL configured on the backend.')
-        path = self._admin_path.format(model=self._magento_model,
-                                       id=id)
+        if hasattr(self.model, '_get_admin_path'):
+            admin_path = getattr(self.model, '_get_admin_path')(
+                backend, external_id)
+        else:
+            key = '_admin2_path' if backend.version == '2.0' else '_admin_path'
+            admin_path = getattr(self, key)
+        if admin_path is None:
+            raise ValueError('No admin path is defined for this record')
+        path = admin_path.format(model=self._magento_model,
+                                 id=external_id)
         url = url.rstrip('/')
         path = path.lstrip('/')
         url = '/'.join((url, path))
