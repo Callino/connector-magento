@@ -34,7 +34,7 @@
 	    <field name="arch" type="xml">
 
 	        <xpath expr="//header" position="inside">
-				<button type="object" name="button_sync_to_magento" string="Sync to Magento" attrs="{'invisible':  [('side', '!=', 'both')]}"/>
+<!--				<button type="object" name="button_sync_to_magento" string="Sync to Magento" attrs="{'invisible':  [('side', '!=', 'both')]}"/>-->
 	        </xpath>
 
 	    </field>

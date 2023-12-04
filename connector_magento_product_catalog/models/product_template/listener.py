@@ -35,12 +35,9 @@ class MagentoProductTemplateExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-        if 'image_medium' in fields:
+        if 'image_1920' in fields:
             # We do ignore image field
-            fields.remove('image_medium')
-        if 'image_small' in fields:
-            # We do ignore image field
-            fields.remove('image_small')
+            fields.remove('image_1920')
         if not len(fields):
             return
         # Check to see if it is a single variant template

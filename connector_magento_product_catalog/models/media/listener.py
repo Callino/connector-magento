@@ -40,7 +40,7 @@ class MagentoProductMediaExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-        if 'image' not in fields and 'image_medium' not in fields:
+        if 'image_1920' not in fields:
             # We do only update on write on image field
             return
         if not record.export_base_image:

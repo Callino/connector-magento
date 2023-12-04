@@ -8,19 +8,19 @@ from odoo import api, models, fields, _
 class WizardModel(models.TransientModel):
     _inherit = "connector_magento.add_backend.wizard"
 
-    @api.multi
+    # @api.mult
     def get_default_products(self):
         return self.get_default_object('product.product')
 
-    @api.multi
+    # @api.mult
     def get_default_product_templates(self):
         return self.get_default_object('product.template')
 
-    @api.multi
+    # @api.mult
     def get_default_category(self):
         return self.get_default_object('product.category')
 
-    @api.multi
+    # @api.mult
     def _get_ids_and_model(self):
         active_model = self.env.context.get('active_model', False)
         if active_model == 'product.template':
@@ -32,7 +32,7 @@ class WizardModel(models.TransientModel):
         else:
             return super(WizardModel, self)._get_ids_and_model()
 
-    @api.multi
+    # @api.mult
     def check_backend_binding(self, to_export_ids=None, dest_model=None):
         if not dest_model or not to_export_ids:
             (to_export_ids, dest_model) = self._get_ids_and_model()

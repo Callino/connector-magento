@@ -4,7 +4,7 @@
 
 import logging
 from odoo import api, models, fields
-from odoo.addons.queue_job.job import job, related_action
+# from odoo.addons.queue_job.job import job, related_action
 from odoo.addons.component.core import Component
 from odoo.addons.queue_job.job import identity_exact
 import urllib.request, urllib.parse, urllib.error
@@ -19,7 +19,7 @@ class ProductTemplate(models.Model):
 
     export_base_image = fields.Boolean('Export Base Image', default=True)
 
-    @api.multi
+    # @api.mult
     def button_resync(self):
         for template in self.sudo():
             for binding in template.magento_template_bind_ids:
@@ -31,16 +31,16 @@ class MagentoProductTemplate(models.Model):
 
     special_price_active = fields.Boolean('Special Price', default=False)
 
-    @api.multi
+    # @api.mult
     def sync_to_magento(self):
         for binding in self:
             delayed = binding.with_delay(identity_key=('magento_product_template_%s' % binding.id), priority=10).run_sync_to_magento()
             job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
             binding.odoo_id.with_context(connector_no_export=True).job_ids += job
 
-    @api.multi
-    @job(default_channel='root.magento.product_to_magento')
-    @related_action(action='related_action_unwrap_binding')
+    # @api.mult
+    # @job(default_channel='root.magento.product_to_magento')
+    # @related_action(action='related_action_unwrap_binding')
     def run_sync_to_magento(self):
         self.ensure_one()
         try:
@@ -50,16 +50,16 @@ class MagentoProductTemplate(models.Model):
         except MissingError as e:
             return True
 
-    @api.multi
+    # @api.mult
     def light_sync_to_magento(self):
         for binding in self:
             delayed = binding.with_delay(identity_key=('magento_product_template_%s' % binding.id), priority=10).run_light_sync_to_magento()
             job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
             binding.odoo_id.with_context(connector_no_export=True).job_ids += job
 
-    @api.multi
-    @job(default_channel='root.magento.product_to_magento')
-    @related_action(action='related_action_unwrap_binding')
+    # @api.mult
+    # @job(default_channel='root.magento.product_to_magento')
+    # @related_action(action='related_action_unwrap_binding')
     def run_light_sync_to_magento(self):
         self.ensure_one()
         try:
@@ -70,9 +70,9 @@ class MagentoProductTemplate(models.Model):
             return True
 
 
-    @job(default_channel='root.magento.productexport')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento.productexport')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.mult
     def export_product_template_for_storeview(self, fields=None, storeview_id=None):
         """ Export the attributes configuration of a product. """
         self.ensure_one()

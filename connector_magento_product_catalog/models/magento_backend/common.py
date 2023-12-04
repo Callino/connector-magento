@@ -9,7 +9,7 @@ IMPORT_DELTA_BUFFER = 30  # seconds
 class MagentoBackend(models.Model):
     _inherit = 'magento.backend'
 
-    @api.multi
+    # @api.multi
     def export_product_catalog(self):
         import_start_time = datetime.now()
         # TODO make batchExporter class
@@ -26,7 +26,7 @@ class MagentoBackend(models.Model):
             backend.write({'export_products_from_date': next_time})
         return True
 
-    @api.multi
+    # @api.multi
     def button_sync_to_magento_products(self):
         for backend in self:
             for model_name in ('magento.product.template',

@@ -5,7 +5,7 @@
 import logging
 from odoo import api, models
 from odoo.addons.component.core import Component
-from odoo.addons.queue_job.job import job, related_action
+# from odoo.addons.queue_job.job import job, related_action
 
 _logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 class MagentoProductCategory(models.Model):
     _inherit = 'magento.product.category'
     
-    @api.multi
+    # @api.multi
     def sync_to_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
@@ -21,9 +21,9 @@ class MagentoProductCategory(models.Model):
             exporter = work.component(usage=usage)
             return exporter.run(self)
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.mult
     def export_category(self, fields=None):
         """ Export a category. """
         self.ensure_one()
@@ -34,9 +34,9 @@ class MagentoProductCategory(models.Model):
             exporter = work.component(usage=usage)
             return exporter.run(self)
 
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
-    @api.multi
+    # @job(default_channel='root.magento')
+    # @related_action(action='related_action_unwrap_binding')
+    # @api.mult
     def update_positions(self):
         if self.backend_id.product_synchro_strategy == 'magento_first':
             return
