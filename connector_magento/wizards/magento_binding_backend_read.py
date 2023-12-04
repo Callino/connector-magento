@@ -119,8 +119,7 @@ class MagentoBindingBackendRead(models.TransientModel):
             data = adapter.read(self.magento_id)
         with contextlib.closing(io.StringIO()) as buf:
             json.dump(data, buf)
-            out = base64.encodestring(buf.getvalue())
-
+            out = base64.b64encode(buf.getvalue().encode('utf-8'))
         name = 'sale_order_%s.json' % self.magento_id
         self.write({'state': 'get', 'data': out, 'name': name})
         return {
