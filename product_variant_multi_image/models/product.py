@@ -54,20 +54,20 @@ class Product(models.Model):
 class ProductAttribute(models.Model):
     _inherit = "product.attribute"
 
-    create_image = fields.Boolean('Extra Bild', default=False)
+    create_image = fields.Boolean('Create Image', default=False)
 
 
 class ProductAttributeValue(models.Model):
     _inherit = "product.attribute.value"
 
-    create_image = fields.Boolean('Extra Bild', related='attribute_id.create_image', store=True)
+    create_image = fields.Boolean('Create Image', related='attribute_id.create_image', store=True)
 
 
 class ProductImage(models.Model):
     _inherit = 'product.image'
     _order = "sequence, id desc"
 
-    @api.multi
+    # @api.mult
     def _compute_base_product_id(self):
         for image in self:
             if image.product_tmpl_id:
@@ -89,9 +89,9 @@ class ProductImage(models.Model):
     image_product_id = fields.Many2one('product.product', "Product variant Images")
     base_product_tmpl_id = fields.Many2one('product.template', "Base Product Image", compute='_compute_base_product_id', store=True)
     sequence = fields.Integer('Position', default=0, index=True)
-    valid_product_attribute_value_ids = fields.Many2many('product.attribute.value', related='base_product_tmpl_id.valid_product_attribute_value_ids')
+    # valid_product_attribute_value_ids = fields.Many2many('product.attribute.value', related='base_product_tmpl_id.valid_product_attribute_value_ids')
     is_primary_image = fields.Boolean('Primary image', default=False)
-    use_for_template = fields.Boolean('Vorlagenbild', default=True)
+    use_for_template = fields.Boolean('Use forttemplates', default=True)
     attribute_value_id = fields.Many2one(
         "product.attribute.value",
         string="Attribute",

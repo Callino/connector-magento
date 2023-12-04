@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 	<data>
-		<template id="assets_frontend" inherit_id="website_sale.assets_frontend" name="Shop Inherit">
-			<xpath expr="." position="inside">
-				<script type="text/javascript" src="/product_variant_multi_image/static/src/js/website_sale.js"></script>
-			</xpath>
-		</template>
+<!--		<template id="assets_frontend" inherit_id="website_sale.assets_frontend" name="Shop Inherit">-->
+<!--			<xpath expr="." position="inside">-->
+<!--				<script type="text/javascript" src="/product_variant_multi_image/static/src/js/website_sale.js"></script>-->
+<!--			</xpath>-->
+<!--		</template>-->
 
-		<template id="theme" inherit_id="website.assets_frontend">
-    		<xpath expr="." position="inside">
-		        <link href="/product_variant_multi_image/static/src/css/styles.css" rel="stylesheet"/>
-    		</xpath>
-    	</template>
+<!--		<template id="theme" inherit_id="website.assets_frontend">-->
+<!--    		<xpath expr="." position="inside">-->
+<!--		        <link href="/product_variant_multi_image/static/src/css/styles.css" rel="stylesheet"/>-->
+<!--    		</xpath>-->
+<!--    	</template>-->
 
 		<template id="product_inherit" name="Product" inherit_id="website_sale.product">
 			<xpath expr="//section" position="replace">
@@ -47,7 +47,7 @@
                     <div class="row">
                         <div class="col-sm-7">
                             <span itemprop="image" t-field="product.image" t-options="{'widget': 'image', 'class': 'product_detail_img', 'alt-field': 'name', 'zoom': 'image'}" groups="!website_sale.group_website_multi_image"/>
-                            <t groups="website_sale.group_website_multi_image">
+                            <t groups="website_sale">
                                 <t t-set="variant_img" t-value="product.product_variant_ids[0].image_variant"/>
                                 <t t-set="image_ids"  t-value="product.product_image_ids"/>
                                 <t t-set="variant_images"  t-value="[line for line in product.product_variant_ids if line.product_variant_image_ids]"/>

@@ -7,17 +7,17 @@
             <field name="model">product.template</field>
             <field name="inherit_id" ref="website_sale.product_template_form_view"/>
             <field name="arch" type="xml">
-                <button name="website_publish_button" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </button>
-                <button name="website_publish_button" position="before">
+<!--                <button name="website_publish_button" position="attributes">-->
+<!--                    <attribute name="invisible">1</attribute>-->
+<!--                </button>-->
+                <field name="is_published" position="before">
                     <button class="oe_stat_button" name="product_images_button" type="object" icon="fa-file-image-o" attrs="{'invisible': [('sale_ok','=',False)]}" modifiers="{'invisible':[['sale_ok','=',false]]}" options="{}">
                         <field string="Images" name="product_image_count" widget="statinfo" modifiers="{'readonly':true}"/>
                     </button>
-			    </button>
-                <group name="extra_images" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </group>
+			    </field>
+<!--                <group name="extra_images" position="attributes">-->
+<!--                    <attribute name="invisible">1</attribute>-->
+<!--                </group>-->
             </field>
         </record>
     </data>

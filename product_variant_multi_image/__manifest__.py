@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Product variant Multi Image',
-    'version': '12.0.1.0',
+    'version': '16.0.0.0.0',
     'category': 'Sales',
     'description': """
 Website Product Variant Multi Images.
@@ -11,6 +11,8 @@ Website Product Variant Multi Images.
     'author': 'Callino',
     'website': 'https://www.callino.at',
     'depends': ['website_sale'],
+    'license': 'AGPL-3',
+    'installable': False,
     'data': [
         'views/product_view.xml',
         'views/templates.xml',
@@ -18,4 +20,10 @@ Website Product Variant Multi Images.
         'views/product_image.xml',
         'views/attribute.xml',
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'product_variant_multi_image/static/src/js/website_sale.js',
+            'product_variant_multi_image/static/src/scss/product_variant_multi_image.scss',
+        ],
+    },
 }
