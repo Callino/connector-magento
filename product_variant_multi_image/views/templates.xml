@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+		<template id="assets_frontend" inherit_id="website_sale.assets_frontend" name="Shop Inherit">
+			<xpath expr="." position="inside">
+				<script type="text/javascript" src="/product_variant_multi_image/static/src/js/website_sale.js"></script>
+			</xpath>
+		</template>
+
+		<template id="theme" inherit_id="website.assets_frontend">
+    		<xpath expr="." position="inside">
+		        <link href="/product_variant_multi_image/static/src/css/styles.css" rel="stylesheet"/>
+    		</xpath>
+    	</template>
+
+		<template id="product_inherit" name="Product" inherit_id="website_sale.product">
+			<xpath expr="//section" position="replace">
+				<section t-attf-class="container mt8 oe_website_sale #{(compute_currency(product.lst_price) - product.website_price) &gt; 0.01 and website.get_current_pricelist().discount_policy == 'without_discount'  and 'discount'}" id="product_detail">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <ol class="breadcrumb">
+                                <li>
+                                    <a t-att-href="keep(category=0)">Products</a>
+                                </li>
+                                <li t-if="category">
+                                    <a t-att-href="keep('/shop/category/%s' % slug(category), category=0)" t-field="category.name" />
+                                </li>
+                                <li class="active">
+                                    <span t-field="product.name" />
+                                </li>
+                            </ol>
+                        </div>
+                        <div class="col-sm-3 mb8">
+                            <t t-call="website_sale.search" />
+                        </div>
+                        <div id="website_published_button" class="col-sm-3">
+                            <t t-call="website.publish_management" groups="sales_team.group_sale_manager">
+                                <t t-set="object" t-value="product" />
+                                <t t-set="publish_edit" t-value="True" />
+                                <t t-set="action" t-value="'product.product_template_action'" />
+                            </t>
+                        </div>
+                        <div class="col-sm-2 text-right">
+                            <t t-call="website_sale.pricelist_list" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-7">
+                            <span itemprop="image" t-field="product.image" t-options="{'widget': 'image', 'class': 'product_detail_img', 'alt-field': 'name', 'zoom': 'image'}" groups="!website_sale.group_website_multi_image"/>
+                            <t groups="website_sale.group_website_multi_image">
+                                <t t-set="variant_img" t-value="product.product_variant_ids[0].image_variant"/>
+                                <t t-set="image_ids"  t-value="product.product_image_ids"/>
+                                <t t-set="variant_images"  t-value="[line for line in product.product_variant_ids if line.product_variant_image_ids]"/>
+                                <div id="o-carousel-product" class="carousel slide" data-ride="carousel" data-interval="0">
+                                  <div class="carousel-outer">
+                                    <div class="carousel-inner">
+                                        <div class="item active" itemprop="image" t-field="product.product_variant_ids[0].image" t-options='{"widget": "image", "class": "product_detail_img js_variant_img", "alt-field": "name", "zoom": "image"}'/>
+                                        <div t-if="variant_img" class="item" itemprop="image" t-field="product.image" t-options='{"widget": "image", "class": "product_detail_img", "alt-field": "name", "zoom": "image"}'/>
+                                        <t t-if="len(image_ids)" t-foreach="image_ids" t-as="pimg">
+                                            <div class="item" t-field="pimg.image" t-options='{"widget": "image", "class": "product_detail_img", "alt-field": "name", "zoom": "image" }'/>
+                                        </t>
+                                        <t t-foreach="product.product_variant_ids" t-as="variant">
+                                            <t t-foreach="variant.product_variant_image_ids" t-as="var_imag">
+                                                <div class="item" t-field="var_imag.image" t-options='{"widget": "image", "class": "product_detail_img", "alt-field": "name", "zoom": "image" }'/>
+                                            </t>
+                                        </t>
+                                    </div>
+
+                                    <t t-if="len(image_ids) or variant_img">
+                                        <a class="carousel-control left" href="#o-carousel-product" role="button" data-slide="prev" >
+                                            <span class="fa fa-chevron-left" aria-hidden="true"/>
+                                            <span class="sr-only">Previous</span>
+                                        </a>
+                                        <a class="carousel-control right" href="#o-carousel-product" role="button" data-slide="next">
+                                            <span class="fa fa-chevron-right" aria-hidden="true"/>
+                                            <span class="sr-only">Next</span>
+                                        </a>
+                                    </t>
+                                  </div>
+								  <t t-set="indicator_index" t-value="0"/>
+                                  <ol class="carousel-indicators" t-if="len(image_ids) or variant_img or variant_images">
+                                    <li data-target="#o-carousel-product" data-slide-to="0" class="active">
+                                        <img class="img img-responsive js_variant_img_small" t-attf-src="/website/image/product.product/{{product.product_variant_ids[0].id}}/image/90x90" t-att-alt="product.name"/>
+                                    </li>
+                                    <li t-if="variant_img" data-target="#o-carousel-product" data-slide-to="1" class="">
+										<t t-set="indicator_index" t-value="1"/>
+                                        <img class="img img-responsive" t-attf-src="/website/image/product.template/{{product.id}}/image/90x90" t-att-alt="product.name"/>
+                                    </li>
+                                    <t t-if="len(image_ids)" t-foreach="image_ids" t-as="pimg">
+                                        <li data-target="#o-carousel-product" t-att-data-slide-to="pimg_index + (variant_img and 2 or 1)">
+											<t t-set="indicator_index" t-value="pimg_index + (variant_img and 2 or 1)"/>
+                                            <img class="img img-responsive" t-attf-src="/website/image/product.image/{{pimg.id}}/image/90x90" t-att-alt="pimg.name"/>
+                                        </li>
+                                    </t>
+                                    <t t-foreach="product.product_variant_ids" t-as="variant">
+                                        <t t-foreach="variant.product_variant_image_ids" t-as="var_imag">
+											  <t t-set="indicator_index" t-value="indicator_index+1"/>
+                                            <li data-target="#o-carousel-product" t-attf-class="js_variant_indicator js_variant_product_#{variant.id}" 
+												t-att-data-slide-to="indicator_index">
+                                                <img class="img img-responsive" t-attf-src="/website/image/product.image/{{var_imag.id}}/image/90x90" t-att-alt="var_imag.name"/>
+                                            </li>
+                                        </t>
+                                    </t>
+                                  </ol>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="col-sm-5 col-lg-4 col-lg-offset-1" id="product_details">
+                            <h1 itemprop="name" t-field="product.name">Product Name</h1>
+                            <span itemprop="url" style="display:none;" t-esc="'/shop/product/%s' % slug(product)" />
+                            <!-- <form action="/shop/cart/update" class="js_add_cart_variants" t-att-data-attribute_value_ids="product.product_variant_ids.ids" method="POST">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                <div class="js_product" t-if="product.product_variant_ids">
+                                    <t t-placeholder="select">
+                                        <input type="hidden" class="product_id" name="product_id" t-att-value="product.product_variant_id.id if len(product.product_variant_ids) == 1 else '0'" />
+                                        <t t-call="website_sale.variants">
+                                            <t t-set="ul_class" t-value="'nav-stacked'" />
+                                        </t>
+                                    </t>
+                                    <t t-call="website_sale.product_price" />
+                                    <p t-if="len(product.product_variant_ids) &gt; 1" class="css_not_available_msg bg-danger" style="padding: 15px;">Product not available</p>
+                                    <a id="add_to_cart" class="btn btn-primary btn-lg mt8 js_check_product a-submit" href="#">Add to Cart</a>
+                                </div>
+                            </form> -->
+                            <hr t-if="product.availability != 'empty'"/>
+                            <div t-if="product.availability == 'in_stock'" class="alert alert-success">
+                                <span class="fa fa-check" />
+                                <span>In Stock</span>
+                            </div>
+                            <div t-if="product.availability == 'warning'" class="alert alert-warning">
+                                <span class="fa fa-warning" />
+                                <span t-field="product.availability_warning" />
+                            </div>
+                            <hr t-if="product.description_sale" />
+                            <div>
+                                <p t-field="product.description_sale" class="text-muted" />
+                            </div>
+                            <hr />
+                            <p class="text-muted">
+                              30-day money-back guarantee<br />
+                              Free Shipping in U.S.<br />
+                              Buy now, get in 2 days
+                            </p>
+                        </div>
+                    </div>
+                </section>
+			</xpath>
+			<!-- <xpath expr="//t[@t-if='len(image_ids)']" position="after">
+				<t t-foreach="product.product_variant_ids" t-as="variant">
+					<t t-foreach="variant.product_variant_image_ids" t-as="var_imag">
+						<div class="item" t-field="var_imag.image" t-options='{"widget": "image", "class": "product_detail_img", "alt-field": "name", "zoom": "image" }'/>
+					</t>
+				</t>
+			</xpath> -->
+			<!-- <xpath expr="//t[2][@t-if='len(image_ids)']" position="after">
+				<t t-foreach="product.product_variant_ids" t-as="variant">
+					<t t-foreach="variant.product_variant_image_ids" t-as="var_imag">
+						<li data-target="#o-carousel-product" t-attf-class="js_variant_indicator js_variant_product_#{variant.id}" t-att-data-slide-to="variant_index + var_imag_index + len(image_ids) + (variant_img and 2 or 1)">
+							<img class="img img-responsive" t-attf-src="/website/image/product.image/{{var_imag.id}}/image/90x90" t-att-alt="var_imag.name"/>
+						</li>
+					</t>
+				</t>
+			</xpath> -->
+		</template>
+
+        <!-- removed for attribute color logic -->
+        <!--
+		<template id="variants" inherit_id="website_sale.variants">
+            <xpath expr="//label[contains(@t-attf-class, 'css_attribute_color')]" position="replace">
+            	<t t-set="color_product_ids" t-value="[o[0] for o in attribute_value_ids if value_id.id in o[1]]"/>
+            	<label t-attf-style="background-image:url(/website/image?field=image&amp;model=product.product&amp;id=#{color_product_ids[0] if len(color_product_ids) else None})"
+                       t-attf-class="css_attribute_color #{'active' if not inc else ''}">
+                    <input type="radio" t-att-class="'js_variant_change' if variant_id.attribute_id.create_variant else None"
+                      	   t-att-checked="'checked' if not inc else None"
+                      	   t-att-name="'attribute-%s-%s' % (product.id, variant_id.attribute_id.id)"
+                      	   t-att-value="value_id.id"
+                      	   t-att-title="value_id.name"/>
+                    <span class="label label-default" t-field="value_id.name"/>
+                  </label>
+            </xpath>
+        </template>
+        -->
+
+	</data>
+</odoo>
