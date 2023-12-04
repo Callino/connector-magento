@@ -6,7 +6,7 @@ Connector Magento - Dashboard
 ===============================================
 Adds a Dasboard to Magento Connector with most important Info and Functions
     """,
-    'version': '10.0.0.1',
+    'version': '12.0.0.0.0',
     'category': 'Connector',
     'author': "Callino",
     'website': "http://www.callino.at",

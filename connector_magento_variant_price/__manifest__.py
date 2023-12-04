@@ -4,7 +4,7 @@
 
 {
     'name': 'Magento Connector Variant Price Glue Module',
-    'version': '10.0.1.0.0',
+    'version': '12.0.0.0.0',
     'category': 'Connector',
     'depends': ['connector_magento',
                 'product_variant_sale_price',
