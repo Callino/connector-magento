@@ -188,16 +188,16 @@ class ProductImportMapper(Component):
                 'value_ids': [(6, 0, [mvalue.odoo_id.id])],
             }))
         return {
-            'attribute_value_ids': attribute_value_ids,
+            # 'attribute_value_ids': attribute_value_ids,
             'attribute_line_ids': attribute_line_ids,
         }
 
     @mapping
     def type(self, record):
         if record['type_id'] == 'simple':
-            return {'type': 'product'}
+            return {'detailed_type': 'product'}
         elif record['type_id'] in ('virtual', 'downloadable', 'giftcard'):
-            return {'type': 'service'}
+            return {'detailed_type': 'service'}
         return
 
     @mapping
@@ -263,7 +263,9 @@ class ProductImportMapper(Component):
                 if att_val:
                     link_value.append(att_val[0].odoo_id.id)
         # TODO: Switch between standr Odoo class or to the new class
-        return {'attribute_set_id': attribute_set.id, 'attribute_value_ids': [(6, 0, link_value)]}
+        return {'attribute_set_id': attribute_set.id,
+                # 'attribute_value_ids': [(6, 0, link_value)]
+                }
 
     @mapping
     def backend_id(self, record):

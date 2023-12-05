@@ -20,6 +20,11 @@ from odoo.exceptions import MissingError
 _logger = logging.getLogger(__name__)
 
 
+def chunks(items, length):
+    for index in range(0, len(items), length):
+        yield items[index:index + length]
+
+
 class MagentoProductProduct(models.Model):
     _name = 'magento.product.product'
     _inherit = 'magento.binding'
