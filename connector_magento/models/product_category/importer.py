@@ -198,6 +198,7 @@ class ProductCategoryImportMapper(Component):
 
     @mapping
     def name(self, record):
+
         if record['level'] == '0':  # top level category; has no name
             return {'name': self.backend_record.name}
         if record['name']:  # may be empty in storeviews

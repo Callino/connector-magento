@@ -46,6 +46,7 @@ class MagentoProductCategory(models.Model):
                               required=False,
                               ondelete='cascade')
     magento_name = fields.Char(string='Name')
+    name = fields.Char(translate=True)
     description = fields.Text(translate=True)
     magento_parent_id = fields.Many2one(
         comodel_name='magento.product.category',
