@@ -23,6 +23,8 @@ class MagentoBinding(models.AbstractModel):
     @api.depends('backend_id', 'external_id')
     def _compute_magento_backend_url(self):
         for binding in self:
+            binding.magento_backend_url = False
+            binding.magento_frontend_url = False
             if binding._magento_backend_path:
                 binding.magento_backend_url = "%s/%s" % (urljoin(binding.backend_id.admin_location, binding._magento_backend_path), binding.external_id)
             if binding._magento_frontend_path:
