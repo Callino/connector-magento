@@ -73,7 +73,7 @@ class Magento2Client(object):
             http_method = 'get'
         function = getattr(requests, http_method)
         headers = {'Authorization': 'Bearer %s' % self._token}
-        kwargs = {'headers': headers}
+        kwargs = {'headers': headers,'verify':self._verify_ssl}
         if http_method == 'get':
             kwargs['params'] = arguments
         elif arguments is not None:
