@@ -267,7 +267,6 @@ class ProductImportMapper(Component):
         mag_categories = record.get('category_ids') or record.get(
             'categories', [])
         binder = self.binder_for('magento.product.category')
-
         category_ids = []
         main_categ_id = None
 
@@ -280,17 +279,7 @@ class ProductImportMapper(Component):
 
             category_ids.append(cat.id)
 
-        if category_ids:
-            main_categ_id = category_ids.pop(0)
-
-        if main_categ_id is None:
-            default_categ = self.backend_record.default_category_id
-            if default_categ:
-                main_categ_id = default_categ.id
-
-        result = {'categ_ids': [(6, 0, category_ids)]}
-        if main_categ_id:  # OpenERP assign 'All Products' if not specified
-            result['categ_id'] = main_categ_id
+        result = {'product_category_public_ids': [(6, 0, category_ids)]}
         return result
 
     @mapping

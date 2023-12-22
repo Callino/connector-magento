@@ -189,6 +189,15 @@ class MagentoProductProduct(models.Model):
             'We have to import the product before we can provide the admin '
             'link to it.'))
 
+class ProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    product_category_public_ids = fields.Many2many(
+        comodel_name='product.category.public',
+        relation='product_category_public_rel',
+        string='Public Categories',
+    )
+
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'
