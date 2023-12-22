@@ -81,6 +81,16 @@
                                             string="Import in background"/>
                                 </div>
                             </group>
+                                                        <group>
+                                <label for="import_tax_classes"
+                                       string="Import taxclasses"
+                                       class="oe_inline"/>
+                                <button name="import_tax_classes"
+                                        type="object"
+                                        class="oe_highlight"
+                                        string="Import in background"/>
+                            </group>
+
                             <group>
                                 <label for="import_partners"
                                        string="Import partners from all websites"

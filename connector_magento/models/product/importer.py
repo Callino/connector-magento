@@ -216,6 +216,38 @@ class ProductImportMapper(Component):
         elif record['type_id'] in ('virtual', 'downloadable', 'giftcard'):
             return {'detailed_type': 'service'}
         return
+    @mapping
+    def tax_class_id(self, record):
+        _logger.info("Get tax_class_id from %s", record)
+        tax_attribute = [a for a in record['custom_attributes'] if a['attribute_code'] == 'tax_class_id']
+        if not tax_attribute:
+            return {}
+        binder = self.binder_for('magento.account.tax')
+        # I have no idea why the binder can not get the record here - as soon as you use sudo it will work...
+        # mtax = binder.to_internal(str(tax_attribute[0]['value']), unwrap=False)
+        mtax = self.env['magento.account.tax'].sudo().search(
+            [('external_id', '=', str(tax_attribute[0]['value'])),
+             ('backend_id', '=', self.backend_record.id)]
+        )
+
+        if int(tax_attribute[0]['value']) == 0:
+            return {}
+        if not mtax:
+            raise MappingError("The tax class with the id %s "
+                               "is not imported." %
+                               tax_attribute[0]['value'])
+        if not mtax.odoo_id:
+            raise MappingError("The tax class with the id %s "
+                               "is not mapped to an odoo tax." %
+                               tax_attribute[0]['value'])
+        data = {}
+        if mtax.product_tax_ids:
+            data.update({'taxes_id': [(6, 0, mtax.product_tax_ids.ids)]})
+        else:
+            data.update({'taxes_id': [(4, mtax.odoo_id.id)]})
+        if mtax.product_tax_purchase_ids:
+            data.update({'supplier_taxes_id': [(6, 0, mtax.product_tax_purchase_ids.ids)]})
+        return data
 
     @mapping
     def website_ids(self, record):

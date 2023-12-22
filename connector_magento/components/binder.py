@@ -29,4 +29,5 @@ class MagentoModelBinder(Component):
         'magento.sale.order',
         'magento.sale.order.line',
         'magento.account.invoice',
+        'magento.account.tax',
     ]

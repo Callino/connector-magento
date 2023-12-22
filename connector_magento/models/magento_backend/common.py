@@ -264,6 +264,8 @@ class MagentoBackend(models.Model):
         storeviews.import_sale_orders()
         return True
 
+
+
     # @api.multi
     def import_customer_groups(self):
         for backend in self:
@@ -312,7 +314,12 @@ class MagentoBackend(models.Model):
         self._import_from_date('magento.product.product',
                                'import_products_from_date')
         return True
-
+    # @api.multi
+    def import_tax_classes(self):
+        """ Import tax class """
+        for backend in self:
+            self.env['magento.account.tax'].import_batch(backend)
+        return True
     # @api.multi
     def _domain_for_update_product_stock_qty(self):
         return [
