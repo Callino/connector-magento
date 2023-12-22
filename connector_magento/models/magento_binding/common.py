@@ -26,6 +26,11 @@ class MagentoBinding(models.AbstractModel):
     # fields.Char because 0 is a valid Magento ID
     external_id = fields.Char(string='ID on Magento', oldname='magento_id')
 
+    data = fields.Json(
+        string='Raw Json Data',
+        help='Serialized data from Magento.',
+    )
+
     _sql_constraints = [
         ('magento_uniq', 'unique(backend_id, external_id)',
          'A binding already exists with the same Magento ID.'),

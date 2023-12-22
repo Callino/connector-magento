@@ -3,6 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo.addons.component.core import AbstractComponent
+from odoo.addons.connector.components.mapper import mapping, only_create
 
 
 class MagentoImportMapper(AbstractComponent):
@@ -10,6 +11,9 @@ class MagentoImportMapper(AbstractComponent):
     _inherit = ['base.magento.connector', 'base.import.mapper']
     _usage = 'import.mapper'
 
+    @mapping
+    def data(self, record):
+        return {'data': record}
 
 class MagentoExportMapper(AbstractComponent):
     _name = 'magento.export.mapper'
