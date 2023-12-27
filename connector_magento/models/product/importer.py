@@ -313,6 +313,8 @@ class ProductImporter(Component):
         """ Import the dependencies for the record"""
         record = self.magento_record
         # import related categories
+        self._import_dependency(record['attribute_set_id'],
+                                'magento.product.attribute.set')
         for mag_category_id in (record.get('category_ids') or record.get(
                 'categories', [])):
             self._import_dependency(mag_category_id,

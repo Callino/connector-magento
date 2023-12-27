@@ -35,9 +35,9 @@ class MagentoImporter(AbstractComponent):
         self.external_id = None
         self.magento_record = None
 
-    def _get_magento_data(self):
+    def _get_magento_data(self, **kwargs):
         """ Return the raw Magento data for ``self.external_id`` """
-        return self.backend_adapter.read(self.external_id)
+        return self.backend_adapter.read(self.external_id, **kwargs)
 
     def _before_import(self):
         """ Hook called before the import, when we have the Magento
@@ -169,12 +169,19 @@ class MagentoImporter(AbstractComponent):
         """ Hook called at the end of the import """
         return
 
-    def run(self, external_id, force=False, data=None):
+    def run(self, external_id, force=False, data=None, **kwargs):
         """ Run the synchronization
 
         :param external_id: identifier of the record on Magento
         """
-        self.external_id = external_id
+        self.force = force
+        if isinstance(external_id, dict):
+            self.magento_record = external_id
+            self.external_id = str(external_id[self._magento_id_field])
+        else:
+            self.external_id = external_id
+        if not isinstance(self.external_id, str):
+            self.external_id = str(self.external_id)
         lock_name = 'import({}, {}, {}, {})'.format(
             self.backend_record._name,
             self.backend_record.id,
@@ -182,11 +189,9 @@ class MagentoImporter(AbstractComponent):
             external_id,
         )
 
-        if data:
-            self.magento_record = data
-        else:
+        if not isinstance(external_id, dict):
             try:
-                self.magento_record = self._get_magento_data()
+                self.magento_record = self._get_magento_data(**kwargs)
             except IDMissingInBackend:
                 return _('Record does no longer exist in Magento')
 

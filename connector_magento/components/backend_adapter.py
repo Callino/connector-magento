@@ -206,7 +206,7 @@ class MagentoCRUDAdapter(AbstractComponent):
         raise NotImplementedError
 
     def _call(self, method, arguments=None,
-              http_method=None, storeview=None):
+              http_method=None, storeview=None, ):
         try:
             magento_api = getattr(self.work, 'magento_api')
         except AttributeError:
@@ -305,7 +305,7 @@ class GenericAdapter(AbstractComponent):
             return quote_plus(term)
         return term
 
-    def read(self, external_id, attributes=None, storeview=None):
+    def read(self, external_id, attributes=None, storeview=None, **kwargs):
         """ Returns the information of a record
 
         :rtype: dict
@@ -329,12 +329,12 @@ class GenericAdapter(AbstractComponent):
             raise NotImplementedError
         if self._magento2_key:
             return self._call(
-                '%s/%s' % (self._magento2_model, self.escape(external_id)),
+                ('%s/%s' % (self._magento2_model, self.escape(external_id))) % kwargs,
                 attributes, storeview=storeview)
-        res = self._call(self._magento2_model, None)
+        res = self._call(self._magento2_model % kwargs, None)
         return next(record for record in res if record['id'] == external_id)
 
-    def search_read(self, filters=None):
+    def search_read(self, filters=None, ):
         """ Search records according to some criterias
         and returns their information"""
         if self.collection.version == '1.7':
@@ -348,11 +348,26 @@ class GenericAdapter(AbstractComponent):
         return self._call(
             self._magento2_search or self._magento2_model, params)
 
-    def create(self, data):
+    def create(self, data, storeview=None, **kwargs):
         """ Create a record on the external system """
-        if self.collection.version == '1.7':
-            return self._call('%s.create' % self._magento_model, [data])
-        raise NotImplementedError
+        """ Create a record on the external system """
+        if self.work.magento_api._location.version == '2.0':
+            if self._magento2_name:
+                new_object = self._call(
+                    self._magento2_model % kwargs,
+                    {self._magento2_name: data,
+                     'saveOptions': True}, http_method='post')
+                if isinstance(new_object, dict):
+                    data.update(new_object)
+            else:
+                new_object = self._call(
+                    self._magento2_model % kwargs,
+                    data, http_method='post')
+            return self._get_id_from_create(new_object, data)
+        return self._call('%s.create' % self._magento_model, [data])
+
+    def _get_id_from_create(self, result, data=None):
+        return result['id']
 
     def write(self, external_id, data):
         """ Update records on the external system """
@@ -388,3 +403,4 @@ class GenericAdapter(AbstractComponent):
         path = path.lstrip('/')
         url = '/'.join((url, path))
         return url
+

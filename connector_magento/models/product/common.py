@@ -46,7 +46,7 @@ class MagentoProductProduct(models.Model):
     odoo_id = fields.Many2one(comodel_name='product.product',
                               string='Odoo Product',
                               required=True,
-                              ondelete='restrict')
+                              ondelete='cascade')
     magento_internal_id = fields.Char(
         help=(
             'In Magento2, we have to keep track of both the external_id (the '
@@ -255,7 +255,7 @@ class ProductProductAdapter(Component):
                                   [filters] if filters else [{}])]
         return super(ProductProductAdapter, self).search(filters=filters)
 
-    def read(self, external_id, storeview_id=None, attributes=None):
+    def read(self, external_id, storeview_id=None, attributes=None, **kwargs):
         """ Returns the information of a record
 
         :rtype: dict

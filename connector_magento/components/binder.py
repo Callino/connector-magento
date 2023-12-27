@@ -30,4 +30,7 @@ class MagentoModelBinder(Component):
         'magento.sale.order.line',
         'magento.account.invoice',
         'magento.account.tax',
+        'magento.product.attribute.set',
+        'magento.product.attribute',
+        'magento.product.attribute.value',
     ]

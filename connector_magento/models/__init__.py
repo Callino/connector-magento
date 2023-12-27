@@ -15,3 +15,6 @@ from . import queue_job
 from . import sale_order
 from . import stock_picking
 from . import magento_taxclass
+from . import magento_attribute_set
+from . import product_attribute
+from . import product_attribute_value
