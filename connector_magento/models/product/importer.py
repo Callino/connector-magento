@@ -260,6 +260,7 @@ class ProductImportMapper(Component):
             website_ids.append((4, website_binding.id))
         return {'website_ids': website_ids}
 
+
     @mapping
     def categories(self, record):
         """ Fetch categories key for Magento 1.x or category_ids
@@ -285,6 +286,40 @@ class ProductImportMapper(Component):
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
+    @mapping
+    def attributes(self, record):
+        attribute_binder = self.binder_for('magento.product.attribute')
+        value_binder = self.binder_for('magento.product.attribute.value')
+        attribute_line_ids = [(5, )]
+        for attribute in record['custom_attributes']:
+            mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False, external_field='attribute_code')
+            # if mattribute.create_variant == 'no_variant':
+            #     # We do ignore attributes which do not create a variant
+            #     continue
+            # if not mattribute:
+            #     raise MappingError("The product attribute %s is not imported." % mattribute.name)
+            # if str(attribute['value'])=='0' and mattribute.frontend_input == 'select':
+            #     # We do ignore attributes with value 0 on select attribute types - magento seems to be buggy here
+            #     continue
+            if mattribute:
+                mvalue = value_binder.to_internal("%s_%s" % (mattribute.attribute_id, str(attribute['value'])), unwrap=False)
+                if not mvalue:
+                    raise MappingError("The product attribute value %s in attribute %s is not imported." %
+                                       ("%s_%s" % (mattribute.attribute_id, str(attribute['value'])), mattribute.name))
+                # Also create an attribute.line.value entrie here
+                attribute_line_ids.append((0, 0, {
+                    'attribute_id': mattribute.odoo_id.id,
+                    'value_ids': [(6, 0, [mvalue.odoo_id.id])],
+                }))
+        return {
+            'attribute_line_ids': attribute_line_ids,
+        }
+
+    @mapping
+    def attribute_set_id(self, record):
+        binder = self.binder_for('magento.product.attribute.set')
+        attribute_set = binder.to_internal(record['attribute_set_id'])
+        return {'attribute_set_id': attribute_set.id, }
 
 
 class ProductImporter(Component):

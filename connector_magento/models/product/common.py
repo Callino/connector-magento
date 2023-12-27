@@ -90,6 +90,12 @@ class MagentoProductProduct(models.Model):
              "from stock synchronizations.",
     )
 
+    attribute_set_id = fields.Many2one(
+        comodel_name='magento.product.attribute.set',
+        string='Attribute Set',
+        required=True,
+    )
+
     RECOMPUTE_QTY_STEP = 1000  # products at a time
 
     # @job(default_channel='root.magento')
