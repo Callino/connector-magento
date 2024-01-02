@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from odoo import models, fields, api, _
 from odoo.tools import ustr
 from odoo.exceptions import UserError
+from odoo.addons.queue_job.job import identity_exact
 
 # from odoo.addons.connector.models.checkpoint import add_checkpoint
 from ...components.backend_adapter import MagentoLocation, MagentoAPI
@@ -320,6 +321,14 @@ class MagentoBackend(models.Model):
         for backend in self:
             self.env['magento.account.tax'].import_batch(backend)
         return True
+
+    def import_attribute_sets(self):
+        """ Import attribute sets from backend """
+        for backend in self:
+            backend.check_magento_structure()
+            self.env['magento.product.attribute.set'].with_delay(identity_key=identity_exact).import_batch(backend)
+        return True
+
     # @api.multi
     def _domain_for_update_product_stock_qty(self):
         return [

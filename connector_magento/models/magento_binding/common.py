@@ -30,11 +30,20 @@ class MagentoBinding(models.AbstractModel):
         string='Raw Json Data',
         help='Serialized data from Magento.',
     )
-
+    data_str = fields.Text(
+        string='Raw Json Data',
+        help='Serialized data from Magento.',
+        compute='_compute_data_str',
+    )
     _sql_constraints = [
         ('magento_uniq', 'unique(backend_id, external_id)',
          'A binding already exists with the same Magento ID.'),
     ]
+
+    @api.depends('data')
+    def _compute_data_str(self):
+        for record in self:
+            record.data_str = record.data and str(record.data) or ''
 
     # @job(default_channel='root.magento')
     @api.model

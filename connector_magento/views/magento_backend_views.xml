@@ -90,6 +90,15 @@
                                         class="oe_highlight"
                                         string="Import in background"/>
                             </group>
+                                                        <group>
+                                <label for="import_attribute_sets"
+                                       string="Import Attrbute Sets"
+                                       class="oe_inline"/>
+                                <button name="import_attribute_sets"
+                                        type="object"
+                                        class="oe_highlight"
+                                        string="Import in background"/>
+                            </group>
 
                             <group>
                                 <label for="import_partners"

@@ -41,7 +41,7 @@ class ProductAttributeDefinitionExporter(Component):
             if option_binding:
                 option_binding.with_context(connector_no_export=True).write({
                     'code': option['value'],
-                    'external_id': "%s_%s" % (str(result['attribute_id']), tools.ustr(option['value'])),
+                    'external_id': "%s_%s" % (str(result['attribute_id']), str(option['value'])),
                 })
             else:
                 # No existing binding - so we have to create a new binding

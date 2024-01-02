@@ -64,6 +64,7 @@ class CatalogImageImporter(Component):
         """
         if not images:
             return {}
+
         # place the images where the type is 'image' first then
         # sort them by the reverse priority (last item of the list has
         # the the higher priority)
@@ -75,17 +76,18 @@ class CatalogImageImporter(Component):
             except ValueError:
                 position = sys.maxsize
             return (primary, -position)
+
         return sorted(images, key=priority)
 
     def _get_binary_image(self, image_data):
         url = image_data['url']
         headers = {}
         if self.backend_record.auth_basic_username \
-           and self.backend_record.auth_basic_password:
+            and self.backend_record.auth_basic_password:
             base64string = base64.b64encode(("%s:%s" % (
                 self.backend_record.auth_basic_username,
                 self.backend_record.auth_basic_password)
-            ).encode('utf-8'))
+                                             ).encode('utf-8'))
             headers["Authorization"] = "Basic %s" % (
                 base64string.decode('utf-8'))
         request = requests.get(
@@ -216,6 +218,7 @@ class ProductImportMapper(Component):
         elif record['type_id'] in ('virtual', 'downloadable', 'giftcard'):
             return {'detailed_type': 'service'}
         return
+
     @mapping
     def tax_class_id(self, record):
         _logger.info("Get tax_class_id from %s", record)
@@ -260,7 +263,6 @@ class ProductImportMapper(Component):
             website_ids.append((4, website_binding.id))
         return {'website_ids': website_ids}
 
-
     @mapping
     def categories(self, record):
         """ Fetch categories key for Magento 1.x or category_ids
@@ -286,23 +288,25 @@ class ProductImportMapper(Component):
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
+
+    @only_create
     @mapping
     def attributes(self, record):
         attribute_binder = self.binder_for('magento.product.attribute')
         value_binder = self.binder_for('magento.product.attribute.value')
-        attribute_line_ids = [(5, )]
+        # attribute_line_ids = [(5, )]
+        attribute_line_ids = []
+        data = {}
         for attribute in record['custom_attributes']:
-            mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False, external_field='attribute_code')
-            # if mattribute.create_variant == 'no_variant':
-            #     # We do ignore attributes which do not create a variant
-            #     continue
-            # if not mattribute:
-            #     raise MappingError("The product attribute %s is not imported." % mattribute.name)
-            # if str(attribute['value'])=='0' and mattribute.frontend_input == 'select':
-            #     # We do ignore attributes with value 0 on select attribute types - magento seems to be buggy here
-            #     continue
+            mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False,
+                                                      external_field='attribute_code')
             if mattribute:
-                mvalue = value_binder.to_internal("%s_%s" % (mattribute.attribute_id, str(attribute['value'])), unwrap=False)
+                if mattribute.create_variant == 'no_variant':
+                    if mattribute.field_id:
+                        data.update({mattribute.field_id.name: attribute['value']})
+                    continue
+                mvalue = value_binder.to_internal("%s_%s" % (mattribute.attribute_id, str(attribute['value'])),
+                                                  unwrap=False)
                 if not mvalue:
                     raise MappingError("The product attribute value %s in attribute %s is not imported." %
                                        ("%s_%s" % (mattribute.attribute_id, str(attribute['value'])), mattribute.name))
@@ -311,9 +315,10 @@ class ProductImportMapper(Component):
                     'attribute_id': mattribute.odoo_id.id,
                     'value_ids': [(6, 0, [mvalue.odoo_id.id])],
                 }))
-        return {
-            'attribute_line_ids': attribute_line_ids,
-        }
+                data.update({
+                    'attribute_line_ids': attribute_line_ids,
+                })
+        return data
 
     @mapping
     def attribute_set_id(self, record):
@@ -331,16 +336,16 @@ class ProductImporter(Component):
         """ Import the dependencies for a Bundle """
         if self.collection.version == '1.7':
             for dependency in [
-                    selection for option in
-                    self.magento_record['_bundle_data']['options']
-                    for selection in option['selections']]:
+                selection for option in
+                self.magento_record['_bundle_data']['options']
+                for selection in option['selections']]:
                 self._import_dependency(dependency['product_id'],
                                         'magento.product.product')
         else:
             for dependency in [
-                    product_link for option in self.magento_record[
-                        'extension_attributes']['bundle_product_options']
-                    for product_link in option['product_links']]:
+                product_link for option in self.magento_record[
+                    'extension_attributes']['bundle_product_options']
+                for product_link in option['product_links']]:
                 self._import_dependency(dependency['sku'],
                                         'magento.product.product')
 
@@ -351,7 +356,7 @@ class ProductImporter(Component):
         self._import_dependency(record['attribute_set_id'],
                                 'magento.product.attribute.set')
         for mag_category_id in (record.get('category_ids') or record.get(
-                'categories', [])):
+            'categories', [])):
             self._import_dependency(mag_category_id,
                                     'magento.product.category')
         if record['type_id'] == 'bundle':

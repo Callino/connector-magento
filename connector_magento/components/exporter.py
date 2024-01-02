@@ -97,6 +97,9 @@ class MagentoBaseExporter(AbstractComponent):
 
         result = self._run(*args, **kwargs)
 
+        if not self.external_id:
+            return result
+
         self.binder.bind(self.external_id, self.binding)
         # Commit so we keep the external ID when there are several
         # exports (due to dependencies) and one of them fails.
@@ -197,7 +200,8 @@ class MagentoExporter(AbstractComponent):
     def _export_dependency(self, relation, binding_model,
                            component_usage='record.exporter',
                            binding_field='magento_bind_ids',
-                           binding_extra_vals=None):
+                           binding_extra_vals=None,
+                           force_update=False):
         """
         Export a dependency. The exporter class is a subclass of
         ``MagentoExporter``. If a more precise class need to be defined,
@@ -282,7 +286,7 @@ class MagentoExporter(AbstractComponent):
             # If wrap is True, relation is already a binding record.
             binding = relation
 
-        if not rel_binder.to_external(binding):
+        if not rel_binder.to_external(binding) or force_update:
             exporter = self.component(usage=component_usage,
                                       model_name=binding_model)
             exporter.run(binding)

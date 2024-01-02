@@ -67,8 +67,8 @@ class AttributeSet(Component):
         attributebinder = self.binder_for('magento.product.attribute')
 
         for record in details:
-            if not record.get('is_user_defined',False):
-                continue
+            # if not record.get('is_user_defined',False):
+            #     continue
             importer.run(record.get('attribute_id'))
             attributes.append(attributebinder.to_internal(record.get('attribute_id')).id)
         binding.write({'attribute_ids' : [(6, 0, attributes)] })

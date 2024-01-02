@@ -25,9 +25,9 @@ class MagentoProductAttribute(models.Model):
     #     inverse_name='magento_attribute_id',
     #     string='Magento product attribute value'
     # )
-    odoo_field_name = fields.Many2one(comodel_name='ir.model.fields',
-                                      string="Odoo Field Name",
-                                      domain=[('model', 'ilike', 'product.')])
+    field_id = fields.Many2one(comodel_name='ir.model.fields',
+                                      string="Odoo Field",
+                                      domain=[('model', 'ilike', 'product.template')])
 
     attribute_id = fields.Integer(string='Magento Attribute ID')
     attribute_code = fields.Char(string='Magento Attribute Attribute Code')
@@ -133,9 +133,6 @@ class ProductAttributeAdapter(Component):
                 id, attributes=attributes, storeview='all', **kwargs)
             return res
         return super(ProductAttributeAdapter, self).read(id, attributes=None,storeview=None, **kwargs )
-
-    def _write_url(self, id, binding=None):
-        return '%s/%s' % (self._magento2_model, binding.attribute_code)
 
     def _get_id_from_create(self, result, data=None):
         # We do need the complete result after the create function - to work on the options...
