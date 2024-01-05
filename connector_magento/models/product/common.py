@@ -12,7 +12,7 @@ from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.component.core import Component
 from odoo.addons.component_event import skip_if
 # # from odoo.addons.queue_job.job import job3, related_action
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, MissingError
 from odoo.tools.translate import _
 from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
 
@@ -95,8 +95,36 @@ class MagentoProductProduct(models.Model):
         string='Attribute Set',
         required=True,
     )
-
+    magento_url_key = fields.Char(string="URL Key")
+    magento_status = fields.Selection([
+        ('2', 'Disabled'),
+        ('1', 'Enabled'),
+        ('0', 'Unknown'),
+    ], default='1', string="Status")
+    magento_visibility = fields.Selection([
+        ('1', 'Not Visible Individually'),
+        ('2', 'Catalog'),
+        ('3', 'Search'),
+        ('4', 'Catalog, Search'),
+    ], default='4', string="Visibility")
     RECOMPUTE_QTY_STEP = 1000  # products at a time
+
+
+    def sync_to_magento(self):
+        for binding in self:
+            binding.with_delay(identity_key=('magento_product_product_%s' % binding.id), priority=10).run_sync_to_magento()
+
+    # @api.multi
+    # @related_action(action='related_action_unwrap_binding')
+    # @job(default_channel='root.magento.product_to_magento')
+    def run_sync_to_magento(self):
+        self.ensure_one()
+        try:
+            with self.backend_id.work_on(self._name) as work:
+                exporter = work.component(usage='record.exporter')
+                return exporter.run(self)
+        except MissingError as e:
+            return True
 
     # @job(default_channel='root.magento')
     # @related_action(action='related_action_unwrap_binding')
@@ -225,6 +253,8 @@ class ProductProductAdapter(Component):
     _magento2_search = 'products'
     _magento2_key = 'sku'
     _admin_path = '/{model}/edit/id/{id}'
+    _magento2_name = 'product'
+
 
     def _call(self, method, arguments, http_method=None, storeview=None):
         try:
@@ -286,7 +316,8 @@ class ProductProductAdapter(Component):
         if self.collection.version == '1.7':
             return self._call('ol_catalog_product.update',
                               [int(external_id), data, storeview_id, 'id'])
-        raise NotImplementedError  # TODO
+        return super(ProductProductAdapter, self).write(
+            external_id, data, storeview=storeview_id)
 
     def get_images(self, external_id, storeview_id=None, data=None):
         """ Fetch image metadata either by querying Magento 1.x, or extracting

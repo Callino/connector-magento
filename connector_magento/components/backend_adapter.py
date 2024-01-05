@@ -231,6 +231,7 @@ class GenericAdapter(AbstractComponent):
     _magento2_key = None
     _admin_path = None
     _admin2_path = None
+    _magento2_name = None
 
     @staticmethod
     def get_searchCriteria(filters):
@@ -325,12 +326,12 @@ class GenericAdapter(AbstractComponent):
             return self._call('%s.info' % self._magento_model,
                               arguments, storeview=storeview)
 
-        if attributes:
-            raise NotImplementedError
+        # if attributes:
+        #     raise NotImplementedError
         if self._magento2_key:
             return self._call(
                 ('%s/%s' % (self._magento2_model, self.escape(external_id))) % kwargs,
-                attributes, storeview=storeview)
+                None, storeview=storeview)
         res = self._call(self._magento2_model % kwargs, None)
         return next(record for record in res if record['id'] == external_id)
 
@@ -369,19 +370,34 @@ class GenericAdapter(AbstractComponent):
     def _get_id_from_create(self, result, data=None):
         return result['id']
 
-    def write(self, external_id, data):
+    def write(self, id, data, storeview=None, **kwargs):
         """ Update records on the external system """
         if self.collection.version == '1.7':
             return self._call('%s.update' % self._magento_model,
-                              [int(external_id), data])
-        raise NotImplementedError
+                              [int(id), data])
+        if self._magento2_name:
+            return self._call(
+                ('%s/%s' % (self._magento2_model, id)) % kwargs,
+                {self._magento2_name: data}, http_method='put', storeview=storeview or 'all')
+        else:
+            return self._call(
+                ('%s/%s' % (self._magento2_model, id)) % kwargs,
+                data, http_method='put', storeview=storeview or 'all')
 
-    def delete(self, external_id):
+    def delete(self, external_id, **kwargs):
         """ Delete a record on the external system """
         if self.collection.version == '1.7':
             return self._call('%s.delete' % self._magento_model,
                               [int(external_id)])
-        raise NotImplementedError
+        try:
+            res = self._call('%s/%s' % (self._magento2_model, self.escape(external_id)) , None, http_method="delete")
+            _logger.info("Record %s deleted on Magento", id)
+        except Exception as e:
+            if e.response.status_code == 404:
+                _logger.info("Record %s already deleted", id)
+                return True
+            raise
+        return res
 
     def admin_url(self, external_id):
         """ Return the URL in the Magento admin for a record """

@@ -326,24 +326,24 @@ class MagentoExporter(AbstractComponent):
         """ Get the data to pass to :py:meth:`_create` """
         return map_record.values(for_create=True, fields=fields, **kwargs)
 
-    def _create(self, data):
+    def _create(self, data, **kwargs):
         """ Create the Magento record """
         # special check on data before export
         self._validate_create_data(data)
-        return self.backend_adapter.create(data)
+        return self.backend_adapter.create(data, **kwargs)
 
     def _update_data(self, map_record, fields=None, **kwargs):
         """ Get the data to pass to :py:meth:`_update` """
         return map_record.values(fields=fields, **kwargs)
 
-    def _update(self, data):
+    def _update(self, data, **kwargs):
         """ Update an Magento record """
         assert self.external_id
         # special check on data before export
         self._validate_update_data(data)
-        self.backend_adapter.write(self.external_id, data)
+        self.backend_adapter.write(self.external_id, data, **kwargs)
 
-    def _run(self, fields=None):
+    def _run(self, fields=None, **kwargs):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding
 
@@ -363,13 +363,13 @@ class MagentoExporter(AbstractComponent):
         map_record = self._map_data()
 
         if self.external_id:
-            record = self._update_data(map_record, fields=fields)
+            record = self._update_data(map_record, fields=fields, **kwargs)
             if not record:
                 return _('Nothing to export.')
-            self._update(record)
+            self._update(record, **kwargs)
         else:
-            record = self._create_data(map_record, fields=fields)
+            record = self._create_data(map_record, fields=fields, **kwargs)
             if not record:
                 return _('Nothing to export.')
-            self.external_id = self._create(record)
+            self.external_id = self._create(record, **kwargs)
         return _('Record exported with ID %s on Magento.') % self.external_id

@@ -129,6 +129,13 @@ class MagentoBackend(models.Model):
              'without a category will be linked to it.',
     )
 
+    pricelist_id = fields.Many2one(
+        comodel_name='product.pricelist',
+        string='Default Pricelist',
+        help='If a default pricelist is selected, products imported '
+             'without a pricelist will be linked to it and will '
+             'be the source for exported price',
+    )
     # TODO? add a field `auto_activate` -> activate a cron
     import_products_from_date = fields.Datetime(
         string='Import products from date',
