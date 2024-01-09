@@ -269,7 +269,7 @@ class ProductProductExporter(Component):
 
     def _export_dependencies(self):
         """ Export the dependencies for the record"""
-        # self._export_categories()
+        self._export_categories()
         # self._export_attribute_values()
         # Clear spezial prices here
         # if self.binding.external_id:
@@ -549,7 +549,9 @@ class ProductProductExportMapper(Component):
                         'attribute_code': matt_id.attribute_code,
                         'value': record[matt_id.field_id.name]
                     })
+            custom_attributes.append(self.category_ids(record))
             _logger.info("Do use custom attributes: %r", custom_attributes)
+
         return {'custom_attributes': custom_attributes}
 
     @mapping

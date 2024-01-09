@@ -180,7 +180,14 @@ class MagentoBackend(models.Model):
         "level. "
         "When import partner, ignore company_id if this flag is set.",
     )
-
+    product_synchro_strategy = fields.Selection([
+            ('magento_first', 'Magento First'),
+            ('odoo_first', 'Odoo First'),
+        ],
+        string='Product Update Strategy',
+        help='Precise which strategy you want to update',
+        default='odoo_first'
+    )
     _sql_constraints = [
         ('sale_prefix_uniq', 'unique(sale_prefix)',
          "A backend with the same sale prefix already exists")
