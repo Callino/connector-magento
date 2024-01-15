@@ -219,7 +219,7 @@ class MagentoImporter(AbstractComponent):
             record = self._update_data(map_record,binding=binding, **kwargs)
             self._update(binding, record)
         else:
-            record = self._create_data(map_record)
+            record = self._create_data(map_record,**kwargs)
             binding = self._create(record)
 
         self.binder.bind(self.external_id, binding)
