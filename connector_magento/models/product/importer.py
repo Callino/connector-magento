@@ -9,7 +9,7 @@ import sys
 
 from odoo import _
 from odoo.addons.component.core import Component
-from odoo.addons.connector.components.mapper import mapping, only_create
+from odoo.addons.connector.components.mapper import mapping, only_create, convert
 from odoo.addons.connector.exception import MappingError, InvalidDataError
 from ...components.mapper import normalize_datetime
 
@@ -175,8 +175,9 @@ class ProductImportMapper(Component):
               ('id', 'magento_internal_id'),
               ('description', 'description'),
               ('weight', 'weight'),
-              ('cost', 'standard_price'),
-              ('short_description', 'description_sale'),
+              # (convert('cost', float), 'standard_price'),
+              # (convert('price',float), 'list_price'),
+              # ('short_description', 'description_sale'),
               ('sku', 'default_code'),
               ('type_id', 'product_type'),
               (normalize_datetime('created_at'), 'created_at'),
@@ -209,7 +210,10 @@ class ProductImportMapper(Component):
 
     @mapping
     def price(self, record):
-        return {'list_price': record.get('price', 0.0)}
+        return {
+            'standard_price': float(record.get('cost', 0.0)),
+            'list_price': float(record.get('price', 0.0))
+        }
 
     @mapping
     def type(self, record):
