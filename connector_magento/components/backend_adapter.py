@@ -333,7 +333,7 @@ class GenericAdapter(AbstractComponent):
                 ('%s/%s' % (self._magento2_model, self.escape(external_id))) % kwargs,
                 None, storeview=storeview)
         res = self._call(self._magento2_model % kwargs, None)
-        return next(record for record in res if record['id'] == external_id)
+        return next(record for record in res if str(record['id']) == external_id)
 
     def search_read(self, filters=None, ):
         """ Search records according to some criterias

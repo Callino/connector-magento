@@ -18,11 +18,11 @@ class AttributeValueImporter(Component):
     _apply_on = ['magento.product.attribute.value']
     _magento_id_field = 'external_id'
 
-    def _create_data(self, map_record, **kwargs):
-        return map_record.values(for_create=True, magento_attribute=self.magento_attribute)
-
-    def _update_data(self, map_record, **kwargs):
-        return map_record.values(magento_attribute=self.magento_attribute, **kwargs)
+    # def _create_data(self, map_record, **kwargs):
+    #     return map_record.values(for_create=True, **kwargs)
+    #
+    # def _update_data(self, map_record, **kwargs):
+    #     return map_record.values( **kwargs)
 
     def run(self, external_id, **kwargs):
         self.magento_attribute = kwargs.get("magento_attribute", None)

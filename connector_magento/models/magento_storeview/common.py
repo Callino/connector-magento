@@ -117,14 +117,14 @@ class StoreviewAdapter(Component):
         :rtype: dict
         """
         if self.collection.version == '2.0':
-            if attributes:
-                raise NotImplementedError
+            # if attributes:
+            #     raise NotImplementedError
             storeview = next(
                 record for record in self._call('store/storeViews')
-                if record['id'] == external_id)
+                if str(record['id']) == external_id)
             storeview.update(next(
                 record for record in self._call('store/storeConfigs')
-                if record['id'] == external_id))
+                if str(record['id']) == external_id))
             return storeview
         return super(StoreviewAdapter, self).read(
             external_id, attributes=attributes)
