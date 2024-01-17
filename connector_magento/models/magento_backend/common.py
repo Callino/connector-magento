@@ -188,6 +188,27 @@ class MagentoBackend(models.Model):
         help='Precise which strategy you want to update',
         default='odoo_first'
     )
+    product_import_strategy = fields.Selection([
+            ('always', 'Always Import'),
+            ('never', 'Do not Import'),
+            ('create', 'Create New Products'),
+            ('update', 'Update Existing Products'),
+        ],
+        string='Product Import Strategy',
+        help='Precise which strategy you want to use for the product import',
+        default='always'
+    )
+    product_export_strategy = fields.Selection([
+            ('always', 'Always Import'),
+            ('never', 'Do not Import'),
+            ('create', 'Create New Products'),
+            ('update', 'Update Existing Products'),
+        ],
+        string='Product Export Strategy',
+        help='Precise which strategy you want to use for the product export',
+        default='always'
+    )
+
     _sql_constraints = [
         ('sale_prefix_uniq', 'unique(sale_prefix)',
          "A backend with the same sale prefix already exists")

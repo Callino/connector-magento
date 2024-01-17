@@ -169,6 +169,9 @@
                                 <field name="account_analytic_id" groups="analytic.group_analytic_accounting"/>
                                 <field name="fiscal_position_id"/>
                                 <field name="is_multi_company"/>
+                                <field name="product_synchro_strategy"/>
+                                <field name="product_export_strategy"/>
+                                <field name="product_import_strategy"/>
                             </group>
                         </page>
 

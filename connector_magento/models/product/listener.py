@@ -13,13 +13,19 @@ class MagentoProductProductBindingExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_create(self, record, fields=None):
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            return
         record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            return
         record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
 
     def on_record_unlink(self, record):
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            return
         with record.backend_id.work_on(record._name) as work:
             external_id = work.component(usage='binder').to_external(record)
             if external_id:
@@ -34,10 +40,14 @@ class MagentoProductProductExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-        if 'image' in fields:
-            # We do ignore image field
-            fields.remove('image')
+        # if 'image' in fields:
+        #     # We do ignore image field
+        #     fields.remove('image')
         for binding in record.magento_bind_ids:
+            if binding.backend_id.product_synchro_strategy == 'magento_first':
+                continue
+            if binding.backend_id.product_export_strategy in ('never','create'):
+                continue
             binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
 
 

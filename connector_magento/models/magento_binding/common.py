@@ -60,7 +60,7 @@ class MagentoBinding(models.AbstractModel):
     @api.model
     def import_record(self, backend, external_id, force=False):
         """ Import a Magento record """
-        with backend.work_on(self._name) as work:
+        with backend.with_env(self.env).work_on(self._name) as work:
             importer = work.component(usage='record.importer')
             return importer.run(external_id, force=force)
 
