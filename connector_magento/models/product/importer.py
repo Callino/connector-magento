@@ -301,6 +301,7 @@ class ProductImportMapper(Component):
         # attribute_line_ids = [(5, )]
         attribute_line_ids = []
         data = {}
+        value_ids = []
         for attribute in record['custom_attributes']:
             mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False,
                                                       external_field='attribute_code')
@@ -319,9 +320,20 @@ class ProductImportMapper(Component):
                     'attribute_id': mattribute.odoo_id.id,
                     'value_ids': [(6, 0, [mvalue.odoo_id.id])],
                 }))
+                value_ids.append(mvalue.odoo_id.id)
                 data.update({
                     'attribute_line_ids': attribute_line_ids,
                 })
+
+        if self.options.get('binding_template_id') and len(value_ids):
+            if data.get('attribute_line_ids'):
+                del data['attribute_line_ids']
+            binding_template_id = self.options['binding_template_id']
+            template_id = binding_template_id.odoo_id
+            ptav_ids = template_id.mapped('attribute_line_ids.product_template_value_ids').filtered(
+                lambda x: x.product_attribute_value_id.id in value_ids)
+            data['product_template_attribute_value_ids'] = [(6, 0, ptav_ids.ids)]
+
         return data
 
     @mapping
@@ -406,21 +418,44 @@ class ProductImporter(Component):
         """
         self._validate_product_type(data)
 
-    def _create(self, data):
-        binding = super()._create(data)
+    def _create(self, data, **kwargs):
+        if 'binding_template_id' in kwargs:
+            binding_template_id = kwargs['binding_template_id']
+            template_id = binding_template_id.odoo_id
+            data['product_tmpl_id'] = template_id.id
+
+            # data['magento_configurable_id'] = kwargs['_binding_template_id'].id
+            # Name is set on product template on configurables
+            if 'name' in data:
+                del data['name']
+            if 'standard_price' in data:
+                del data['standard_price']
+            if 'lst_price' in data:
+                del data['lst_price']
+        binding = super()._create(data, **kwargs)
         if not binding.active:
             # Disable reordering rules that has been created automatically
             binding.orderpoint_ids.write({'active': False})
         self.backend_record.add_checkpoint(binding)
         return binding
 
-    def _update(self, binding, data):
+    def _update(self, binding, data, **kwargs):
         # enable/disable reordering rules before updating the product as Odoo
         # do not allow to disable a product while having active reordering
         # rules on it
+        if 'binding_template_id' in kwargs:
+            data['product_tmpl_id'] = kwargs['binding_template_id'].odoo_id.id
+            # data['magento_configurable_id'] = kwargs['_binding_template_id'].id
+            # Name is set on product template on configurables
+            if 'name' in data:
+                del data['name']
+            if 'standard_price' in data:
+                del data['standard_price']
+            if 'lst_price' in data:
+                del data['lst_price']
         if 'active' in data and not data.get('active'):
             binding.mapped('orderpoint_ids').write({'active': False})
-        res = super()._update(binding, data)
+        res = super()._update(binding, data, **kwargs)
         return res
 
     def _after_import(self, binding):
@@ -480,3 +515,78 @@ class ProductInventoryExporter(Component):
         external_id = self.binder.to_external(binding)
         data = self._get_data(binding, fields)
         self.backend_adapter.update_inventory(external_id, data)
+
+class ProductUpdateWriteMapper(Component):
+    _name = 'magento.product.product.update.write.mapper'
+    _inherit = 'magento.import.mapper'
+    _usage = 'record.update.write'
+    _apply_on = ['magento.product.product']
+
+    direct = [('price', 'magento_price'),
+              ('url_key', 'magento_url_key'),
+              ('sku', 'external_id'),
+              ('id', 'magento_id'),
+              (normalize_datetime('created_at'), 'created_at'),
+              (normalize_datetime('updated_at'), 'updated_at'),
+              ]
+
+    @mapping
+    def magento_name(self, record):
+        return {
+            'magento_name': record['name']
+        }
+
+    @mapping
+    def website_ids(self, record):
+        website_ids = []
+        binder = self.binder_for('magento.website')
+        for mag_website_id in record['extension_attributes']['website_ids']:
+            website_binding = binder.to_internal(mag_website_id)
+            website_ids.append((4, website_binding.id))
+        return {'website_ids': website_ids}
+
+    @mapping
+    def attribute_set_id(self, record):
+        binder = self.binder_for('magento.product.attributes.set')
+        attribute_set = binder.to_internal(record['attribute_set_id'])
+        return {'attribute_set_id': attribute_set.id}
+
+    @mapping
+    def no_stock_sync(self, record):
+        return {'no_stock_sync': self.backend_record.no_stock_sync}
+
+    @mapping
+    def category_positions(self, record):
+        # Only for simple products
+        if not record['type_id'] == 'simple':
+            return {}
+        if not 'extension_attributes' in record or not'category_links' in record['extension_attributes']:
+            return {}
+        data = []
+        for position in record['extension_attributes']['category_links']:
+            binder = self.binder_for('magento.product.category')
+            magento_category = binder.to_internal(position['category_id'])
+            if not magento_category:
+                raise ValueError('Magento category with id %s is missing on odoo side.' % position['category_id'])
+            magento_position = self.env['magento.product.position'].search([
+                ('magento_product_category_id', '=', magento_category.id),
+                ('product_template_id', '=', self.options.binding.odoo_id.product_tmpl_id.id),
+            ])
+            if magento_position:
+                data.append((1, magento_position.id, {
+                    'position': position['position'],
+                }))
+            else:
+                data.append((0, 0, {
+                    'product_template_id': self.options.binding.odoo_id.product_tmpl_id.id,
+                    'magento_product_category_id': magento_category.id,
+                    'position': position['position'],
+                }))
+        return {'magento_product_position_ids': data}
+
+
+class ProductUpdateCreateMapper(Component):
+    _name = 'magento.product.product.update.create.mapper'
+    _inherit = 'magento.product.product.update.write.mapper'
+    _usage = 'record.update.create'
+    _apply_on = ['magento.product.product']

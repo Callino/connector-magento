@@ -18,3 +18,6 @@ from . import magento_taxclass
 from . import magento_attribute_set
 from . import product_attribute
 from . import product_attribute_value
+from . import product_template
+from . import product_template_attribute_line
+

@@ -138,6 +138,20 @@
                                         string="Import in background"/>
                             </group>
                             <group>
+                                <div>
+                                    <label for="import_configurables_from_date"
+                                           string="Import products since"
+                                           class="oe_inline"/>
+                                    <field name="import_configurables_from_date"
+                                           class="oe_inline"
+                                           nolabel="1"/>
+                                </div>
+                                <button name="import_product_template"
+                                        type="object"
+                                        class="oe_highlight"
+                                        string="Import in background"/>
+                            </group>
+                            <group>
                                 <label for="import_sale_orders"
                                        string="Import sales orders from all store views"
                                        class="oe_inline"/>

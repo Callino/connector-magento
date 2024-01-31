@@ -4,6 +4,9 @@
 
 from odoo.addons.component.core import Component
 
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class MagentoModelBinder(Component):
     """ Bind records and give odoo/magento ids correspondence
@@ -33,6 +36,8 @@ class MagentoModelBinder(Component):
         'magento.product.attribute.set',
         'magento.product.attribute',
         'magento.product.attribute.value',
+        'magento.product.template',
+        'magento.product.template.attribute.line',
     ]
 
     def to_internal(self, external_id, unwrap=False, external_field=None):

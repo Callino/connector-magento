@@ -140,6 +140,9 @@ class MagentoBackend(models.Model):
     import_products_from_date = fields.Datetime(
         string='Import products from date',
     )
+    import_configurables_from_date = fields.Datetime(
+        string='Import configurables from date',
+    )
     import_categories_from_date = fields.Datetime(
         string='Import categories from date',
     )
@@ -349,6 +352,10 @@ class MagentoBackend(models.Model):
     def import_product_product(self):
         self._import_from_date('magento.product.product',
                                'import_products_from_date')
+        return True
+    def import_product_template(self):
+        self._import_from_date('magento.product.template',
+                               'import_configurables_from_date')
         return True
     # @api.multi
     def import_tax_classes(self):

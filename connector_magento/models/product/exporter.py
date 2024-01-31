@@ -526,7 +526,6 @@ class ProductProductExportMapper(Component):
             val = record.backend_id.default_attribute_set_id.external_id
         return {'attributeSetId': val}
 
-    @mapping
     def get_custom_attributes(self, record):
         custom_attributes = []
         if record.product_type=='simple':

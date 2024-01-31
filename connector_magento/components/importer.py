@@ -66,7 +66,7 @@ class MagentoImporter(AbstractComponent):
         return magento_date < sync_date
 
     def _import_dependency(self, external_id, binding_model,
-                           importer=None, always=False):
+                           importer=None, always=False, external_field=None, **kwargs):
         """ Import a dependency.
 
         The importer class is a class or subclass of
@@ -88,12 +88,12 @@ class MagentoImporter(AbstractComponent):
         if not external_id:
             return
         binder = self.binder_for(binding_model)
-        if always or not binder.to_internal(external_id):
+        if always or not binder.to_internal(external_id, external_field=external_field):
             if importer is None:
                 importer = self.component(usage='record.importer',
                                           model_name=binding_model)
             try:
-                importer.run(external_id)
+                importer.run(external_id, **kwargs)
             except NothingToDoJob:
                 _logger.info(
                     'Dependency import of %s(%s) has been ignored.',
@@ -145,7 +145,7 @@ class MagentoImporter(AbstractComponent):
     def _create_data(self, map_record, **kwargs):
         return map_record.values(for_create=True, **kwargs)
 
-    def _create(self, data):
+    def _create(self, data, **kwargs):
         """ Create the OpenERP record """
         # special check on data before import
         self._validate_data(data)
@@ -157,7 +157,7 @@ class MagentoImporter(AbstractComponent):
     def _update_data(self, map_record, **kwargs):
         return map_record.values(**kwargs)
 
-    def _update(self, binding, data):
+    def _update(self, binding, data, **kwargs):
         """ Update an OpenERP record """
         # special check on data before import
         self._validate_data(data)
@@ -217,10 +217,10 @@ class MagentoImporter(AbstractComponent):
 
         if binding:
             record = self._update_data(map_record,binding=binding, **kwargs)
-            self._update(binding, record)
+            self._update(binding, record, **kwargs)
         else:
             record = self._create_data(map_record,**kwargs)
-            binding = self._create(record)
+            binding = self._create(record, **kwargs)
 
         self.binder.bind(self.external_id, binding)
 
