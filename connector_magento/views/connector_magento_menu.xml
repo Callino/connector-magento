@@ -52,6 +52,21 @@
         <field name="res_model">magento.product.product</field>
         <field name="view_mode">tree,form</field>
     </record>
+    <record model="ir.actions.act_window" id="action_magento_product_template">
+        <field name="name">Magento Product Template</field>
+        <field name="res_model">magento.product.template</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record model="ir.actions.act_window" id="action_magento_product_category">
+        <field name="name">Magento Product Category</field>
+        <field name="res_model">magento.product.category</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record model="ir.actions.act_window" id="action_magento_product_template_attribute_line">
+        <field name="name">Magento Product Template Attribute Line</field>
+        <field name="res_model">magento.product.template.attribute.line</field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
     <menuitem id="menu_magento_root"
               parent="connector.menu_connector_root"
@@ -92,15 +107,33 @@
               action="action_magento_account_tax"/>
 
     <menuitem id="menu_magento_attribute_set"
-                name="Magento Attribute Sets"
-                parent="menu_magento_root"
-                sequence="70"
-                action="action_magento_attribute_set"/>
+              name="Magento Attribute Sets"
+              parent="menu_magento_root"
+              sequence="70"
+              action="action_magento_attribute_set"/>
 
     <menuitem id="menu_magento_product_product"
-                name="Magento Products"
-                parent="menu_magento_root"
-                sequence="80"
-                action="action_magento_product_product"/>
+              name="Magento Products"
+              parent="menu_magento_root"
+              sequence="80"
+              action="action_magento_product_product"/>
+
+    <menuitem id="menu_magento_product_template"
+              name="Magento Product Templates"
+              parent="menu_magento_root"
+              sequence="90"
+              action="action_magento_product_template"/>
+
+    <menuitem id="menu_magento_product_category"
+              name="Magento Product Categories"
+              parent="menu_magento_root"
+              sequence="100"
+              action="action_magento_product_category"/>
+
+    <menuitem id="menu_magento_product_template_attribute_line"
+              name="Magento Product Template Attribute Lines"
+              parent="menu_magento_root"
+              sequence="110"
+              action="action_magento_product_template_attribute_line"/>
 
 </odoo>
