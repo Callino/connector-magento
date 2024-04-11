@@ -96,11 +96,13 @@
               parent="menu_magento_root"
               sequence="40"
               action="action_magento_storeview"/>
+
     <menuitem id="menu_magento_category"
               name="Magento Categories"
               parent="menu_magento_root"
               sequence="50"
               action="action_product_category_public"/>
+
     <menuitem id="menu_magento_account_tax" name="Magento Taxes"
               parent="menu_magento_root"
               sequence="60"

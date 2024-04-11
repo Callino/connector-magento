@@ -475,6 +475,10 @@ class ProductImporter(Component):
             bundle_importer = self.component(usage='product.bundle.importer')
             bundle_importer.run(binding, self.magento_record)
 
+    def _preprocess_magento_record(self):
+        for attr in self.magento_record.get('custom_attributes', []):
+            self.magento_record[attr['attribute_code']] = attr['value']
+        return
 
 class ProductInventoryExporter(Component):
     _name = 'magento.product.product.exporter'

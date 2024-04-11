@@ -194,7 +194,7 @@ class MagentoImporter(AbstractComponent):
                 self.magento_record = self._get_magento_data(**kwargs)
             except IDMissingInBackend:
                 return _('Record does no longer exist in Magento')
-
+        self._preprocess_magento_record()
         skip = self._must_skip()    # pylint: disable=assignment-from-none
         if skip:
             return skip
@@ -226,6 +226,9 @@ class MagentoImporter(AbstractComponent):
 
         self._after_import(binding)
 
+    def _preprocess_magento_record(self):
+        """ Hook after we got magento record """
+        return
 
 class BatchImporter(AbstractComponent):
     """ The role of a BatchImporter is to search for a list of
