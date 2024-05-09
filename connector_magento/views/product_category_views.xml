@@ -28,6 +28,7 @@
         <field name="arch" type="xml">
             <tree string="Product Category Public">
                 <field name="name"/>
+                <field name="parent_id"/>
             </tree>
         </field>
     </record>
@@ -36,6 +37,8 @@
         <field name="model">magento.product.category</field>
         <field name="arch" type="xml">
             <tree string="Magento Product Category">
+                <field name="name"/>
+                <field name="parent_id"/>
                 <field name="backend_id"/>
             </tree>
         </field>

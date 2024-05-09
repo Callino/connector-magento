@@ -9,8 +9,15 @@
             <page name="connector" position="attributes">
                 <attribute name="invisible">0</attribute>
             </page>
+            <field name="categ_ids" position="after">
+                <field name="product_category_public_ids">
+                    <tree editable="bottom">
+                        <field name="name"/>
+                    </tree>
+                </field>
+            </field>
             <page name="connector" position="inside">
-                <group string="Magento Bindings"  col="6">
+                <group string="Magento Bindings" col="6">
                     <field name="magento_bind_ids" nolabel="1" colspan="5">
                         <tree>
                             <field name="backend_id"/>
@@ -22,30 +29,69 @@
         </field>
     </record>
 
+    <record id="view_magento_product_search" model="ir.ui.view">
+        <field name="name">magento.product.search</field>
+        <field name="model">magento.product.product</field>
+        <field name="arch" type="xml">
+            <search string="">
+                <field name="default_code" string="Default Code" />
+                <field name="backend_id" string="Backend"/>
+            </search>
+        </field>
+    </record>
+
     <record id="view_magento_product_form" model="ir.ui.view">
         <field name="name">magento.product.product.form</field>
         <field name="model">magento.product.product</field>
         <field name="arch" type="xml">
             <form string="Magento Product">
-                <group>
-                    <field name="backend_id"/>
-                    <field name="external_id"/>
-                    <field name="created_at" readonly="1"/>
-                    <field name="updated_at" readonly="1"/>
-                    <field name="product_type" readonly="1"/>
-                </group>
-                <group string="Inventory Options">
-                    <field name="no_stock_sync"/>
-                    <field name="manage_stock"/>
-                    <field name="backorders"/>
-                    <div class="oe_inline">
-                        <label for="magento_qty" class="oe_inline" />
-                        <field name="magento_qty" readonly="1" class="oe_inline"
-                            nolabel="1"/>
-                        <button name="recompute_magento_qty" string="(recompute)"
-                            class="oe_link oe_inline" type="object"/>
-                    </div>
-                </group>
+                <header>
+                    <button name="sync_to_magento" string="To Magento" type="object"
+                            class="oe_highlight"/>
+                    <button name="sync_from_magento" string="From Magento" type="object"
+                            class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="backend_id"/>
+                        <field name="external_id"/>
+                        <field name="odoo_id"/>
+                        <field name="created_at" readonly="1"/>
+                        <field name="updated_at" readonly="1"/>
+                        <field name="product_type"/>
+                        <field name="attribute_set_id"/>
+                    </group>
+                    <notebook>
+                        <page name="product_links" string="Products Links"
+                              attrs="{'invisible' :[('product_type','!=','grouped')]}">
+                            <field name="product_links" nolabel="1" colspan="4">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="default_code"/>
+                                    <field name="backend_id"/>
+                                    <field name="product_type"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="inventory" string="Inventory">
+                            <group string="Inventory Options">
+                                <field name="no_stock_sync"/>
+                                <field name="manage_stock"/>
+                                <field name="backorders"/>
+                                <div class="oe_inline">
+                                    <label for="magento_qty" class="oe_inline"/>
+                                    <field name="magento_qty" readonly="1" class="oe_inline"
+                                           nolabel="1"/>
+                                    <button name="recompute_magento_qty" string="(recompute)"
+                                            class="oe_link oe_inline" type="object"/>
+                                </div>
+                            </group>
+                        </page>
+                        <page name="data" string="JSON Data">
+                            <field name="data_str" nolabel="1" colspan="4"/>
+                        </page>
+                    </notebook>
+                </sheet>
             </form>
         </field>
     </record>
@@ -55,8 +101,12 @@
         <field name="model">magento.product.product</field>
         <field name="arch" type="xml">
             <tree string="Magento Product">
+                <field name="name"/>
+                <field name="default_code"/>
                 <field name="backend_id"/>
                 <field name="product_type"/>
+                <button name="export_record" string="Export to Magento" type="object"
+                        class="oe_highlight"/>
             </tree>
         </field>
     </record>

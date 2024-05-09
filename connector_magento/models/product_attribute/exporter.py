@@ -9,7 +9,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class ProductAttributeDefinitionExporter(Component):
+class ProductAttributeExporter(Component):
     _name = 'magento.product.attribute.exporter'
     _inherit = 'magento.exporter'
     _apply_on = ['magento.product.attribute']
@@ -73,7 +73,7 @@ class ProductAttributeDefinitionExporter(Component):
     def _update(self, data, storeview_code=None):
         del data['attribute_group_id']
         del data['attribute_set_id']
-        result = super(ProductAttributeDefinitionExporter, self)._update(data, storeview_code)
+        result = super(ProductAttributeExporter, self)._update(data, storeview_code)
         self._update_attribute_with_result(result)
         return result
 

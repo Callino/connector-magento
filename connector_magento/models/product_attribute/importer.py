@@ -95,11 +95,11 @@ class AttributeImportMapper(Component):
     _inherit = 'magento.import.mapper'
     _apply_on = ['magento.product.attribute']
 
-    direct = [
-              ('attribute_code', 'attribute_code'),
+    direct = [('attribute_code', 'attribute_code'),
               ('attribute_id', 'attribute_id'),
               ('attribute_id', 'external_id'),
-              ('frontend_input', 'frontend_input')]
+              ('frontend_input', 'frontend_input'),
+              ('is_user_defined', 'is_user_defined'),]
 
     @only_create
     @mapping

@@ -37,9 +37,9 @@ class MagentoProductProduct(models.Model):
             ('configurable', 'Configurable Product'),
             ('virtual', 'Virtual Product'),
             ('downloadable', 'Downloadable Product'),
-            ('giftcard', 'Giftcard')
+            ('giftcard', 'Giftcard'),
             # XXX activate when supported
-            # ('grouped', 'Grouped Product'),
+            ('grouped', 'Grouped Product'),
             # ('bundle', 'Bundle Product'),
         ]
 
@@ -90,17 +90,17 @@ class MagentoProductProduct(models.Model):
              "from stock synchronizations.",
     )
 
+    magento_url_key = fields.Char(string="URL Key")
     attribute_set_id = fields.Many2one(
         comodel_name='magento.product.attribute.set',
         string='Attribute Set',
-        required=True,
     )
-    magento_url_key = fields.Char(string="URL Key")
     magento_status = fields.Selection([
         ('2', 'Disabled'),
         ('1', 'Enabled'),
         ('0', 'Unknown'),
     ], default='1', string="Status")
+
     magento_visibility = fields.Selection([
         ('1', 'Not Visible Individually'),
         ('2', 'Catalog'),
@@ -109,22 +109,26 @@ class MagentoProductProduct(models.Model):
     ], default='4', string="Visibility")
     RECOMPUTE_QTY_STEP = 1000  # products at a time
 
+    product_links = fields.Many2many(
+        comodel_name='magento.product.product',
+        relation='magento_product_product_link',
+        column1='product_id',
+        column2='linked_product_id',
+        string='Related Products',
+    )
 
-    def sync_to_magento(self):
-        for binding in self:
-            binding.with_delay(identity_key=('magento_product_product_%s' % binding.id), priority=10).run_sync_to_magento()
 
-    # @api.multi
+     # @api.multi
     # @related_action(action='related_action_unwrap_binding')
     # @job(default_channel='root.magento.product_to_magento')
-    def run_sync_to_magento(self):
-        self.ensure_one()
-        try:
-            with self.backend_id.work_on(self._name) as work:
-                exporter = work.component(usage='record.exporter')
-                return exporter.run(self)
-        except MissingError as e:
-            return True
+    # def run_sync_to_magento(self):
+    #     self.ensure_one()
+    #     try:
+    #         with self.backend_id.work_on(self._name) as work:
+    #             exporter = work.component(usage='record.exporter')
+    #             return exporter.run(self)
+    #     except MissingError as e:
+    #         return True
 
     # @job(default_channel='root.magento')
     # @related_action(action='related_action_unwrap_binding')
@@ -243,6 +247,7 @@ class ProductProduct(models.Model):
     )
 
 
+
 class ProductProductAdapter(Component):
     _name = 'magento.product.product.adapter'
     _inherit = 'magento.adapter'
@@ -291,7 +296,7 @@ class ProductProductAdapter(Component):
                                   [filters] if filters else [{}])]
         return super(ProductProductAdapter, self).search(filters=filters)
 
-    def read(self, external_id, storeview_id=None, attributes=None, **kwargs):
+    def read(self, external_id, storeview=None, attributes=None, **kwargs):
         """ Returns the information of a record
 
         :rtype: dict
@@ -300,24 +305,24 @@ class ProductProductAdapter(Component):
         if self.collection.version == '1.7':
             return self._call(
                 'ol_catalog_product.info',
-                [int(external_id), storeview_id, attributes, 'id'])
+                [int(external_id), storeview, attributes, 'id'])
         res = super(ProductProductAdapter, self).read(
-            external_id, attributes=attributes, storeview=storeview_id)
+            external_id, attributes=attributes, storeview=storeview)
         if res:
             for attr in res.get('custom_attributes', []):
                 res[attr['attribute_code']] = attr['value']
         return res
 
-    def write(self, external_id, data, storeview_id=None):
+    def write(self, external_id, data, storeview=None, **kwargs):
         """ Update records on the external system """
         # pylint: disable=method-required-super
         # XXX actually only ol_catalog_product.update works
         # the PHP connector maybe breaks the catalog_product.update
         if self.collection.version == '1.7':
             return self._call('ol_catalog_product.update',
-                              [int(external_id), data, storeview_id, 'id'])
+                              [int(external_id), data, storeview, 'id'])
         return super(ProductProductAdapter, self).write(
-            external_id, data, storeview=storeview_id)
+            external_id, data, storeview=storeview, **kwargs)
 
     def get_images(self, external_id, storeview_id=None, data=None):
         """ Fetch image metadata either by querying Magento 1.x, or extracting

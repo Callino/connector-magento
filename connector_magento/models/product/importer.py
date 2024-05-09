@@ -217,7 +217,7 @@ class ProductImportMapper(Component):
 
     @mapping
     def type(self, record):
-        if record['type_id'] == 'simple':
+        if record['type_id'] in ('simple','grouped'):
             return {'detailed_type': 'product'}
         elif record['type_id'] in ('virtual', 'downloadable', 'giftcard'):
             return {'detailed_type': 'service'}
@@ -289,17 +289,32 @@ class ProductImportMapper(Component):
         result = {'product_category_public_ids': [(6, 0, category_ids)]}
         return result
 
+
+    @only_create
+    @mapping
+    def product_links(self, record):
+        if record['type_id'] != 'grouped':
+            return {}
+        product_links = []
+        binder = self.binder_for('magento.product.product')
+        for link in sorted(record['product_links'],key=lambda x: x['position']):
+            product = binder.to_internal(link['linked_product_sku'])
+            if not product:
+                raise MappingError("The product with sku %s is not imported." %
+                                   link['sku'])
+            product_links.append(product.id)
+        return {'product_links': [(6,0,product_links)]}
+
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
 
-    @only_create
     @mapping
     def attributes(self, record):
         attribute_binder = self.binder_for('magento.product.attribute')
         value_binder = self.binder_for('magento.product.attribute.value')
-        # attribute_line_ids = [(5, )]
-        attribute_line_ids = []
+        attribute_line_ids = [(5, 0, 0)]
+        # attribute_line_ids = []
         data = {}
         value_ids = []
         for attribute in record['custom_attributes']:
@@ -377,6 +392,10 @@ class ProductImporter(Component):
                                     'magento.product.category')
         if record['type_id'] == 'bundle':
             self._import_bundle_dependencies()
+        if record['type_id'] == 'grouped':
+            for child in record['product_links']:
+                self._import_dependency(child['linked_product_sku'],
+                                        'magento.product.product')
 
     def _validate_product_type(self, data):
         """ Check if the product type is in the selection (so we can

@@ -39,6 +39,7 @@
           'views/stock_views.xml',
           'views/account_payment_mode_views.xml',
           'wizards/magento_binding_backend_read.xml',
+          'wizards/add_backend.xml',
           ],
  'installable': True,
  'application': False,

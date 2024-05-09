@@ -112,7 +112,7 @@ class MagentoBaseExporter(AbstractComponent):
         self._after_export()
         return result
 
-    def _run(self):
+    def _run(self, *args, **kwargs):
         """ Flow of the synchronization, implemented in inherited classes"""
         raise NotImplementedError
 
@@ -150,7 +150,7 @@ class MagentoExporter(AbstractComponent):
         sql = ("SELECT id FROM %s WHERE ID = %%s FOR UPDATE NOWAIT" %
                self.model._table)
         try:
-            self.env.cr.execute(sql, (self.binding.id, ),
+            self.env.cr.execute(sql, (self.binding.id,),
                                 log_exceptions=False)
         except psycopg2.OperationalError:
             _logger.info('A concurrent job is already exporting the same '
@@ -290,6 +290,12 @@ class MagentoExporter(AbstractComponent):
             exporter = self.component(usage=component_usage,
                                       model_name=binding_model)
             exporter.run(binding)
+
+    def _get_binding(self, model, _id):
+        return self.env[model].search([
+            ('odoo_id', '=', _id),
+            ('backend_id', '=', self.backend_record.id)
+        ])
 
     def _export_dependencies(self):
         """ Export the dependencies for the record"""
