@@ -261,7 +261,7 @@ class ProductProductAdapter(Component):
     _magento2_name = 'product'
 
 
-    def _call(self, method, arguments, http_method=None, storeview=None):
+    def _call(self, method, arguments=None, http_method=None, storeview=None):
         try:
             return super(ProductProductAdapter, self)._call(
                 method, arguments, http_method=http_method,

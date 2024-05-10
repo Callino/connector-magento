@@ -57,7 +57,7 @@ class ProductProductExporter(Component):
             data = self._create(record)
             if not data:
                 raise UserWarning('Create did not returned anything on %s with binding id %s', self._name, self.binding.id)
-            self._update_binding_record_after_create(data)
+            self._update_binding_record_after_create(record)
         return _('Record exported with ID %s on Magento.') % self.external_id
 
     def _sku_inuse(self, sku):
@@ -70,11 +70,11 @@ class ProductProductExporter(Component):
                 ('backend_id', '=', self.backend_record.id),
                 ('external_id', '=', sku),
             ])
-        if not search_count:
-            search_count += self.env['magento.product.bundle'].search_count([
-                ('backend_id', '=', self.backend_record.id),
-                ('external_id', '=', sku),
-            ])
+        # if not search_count:
+        #     search_count += self.env['magento.product.bundle'].search_count([
+        #         ('backend_id', '=', self.backend_record.id),
+        #         ('external_id', '=', sku),
+        #     ])
         return search_count > 0
 
     def _get_sku_proposal(self):
@@ -113,14 +113,8 @@ class ProductProductExporter(Component):
         """ Create the Magento record """
         # special check on data before export
         res = super(ProductProductExporter, self)._create(data, **kwargs)
-        self.binding.with_context(
-            no_connector_export=True).magento_id = data['id']
+        self.binding.with_context(no_connector_export=True).magento_internal_id = res
         return res
-
-    def _update(self, data, **kwargs):
-        """ Create the Magento record """
-        # special check on data before export
-        return super(ProductProductExporter, self)._update(data, **kwargs)
 
     def _should_import(self):
         """ Before the export, compare the update date
@@ -264,7 +258,7 @@ class ProductProductExporter(Component):
         for extra_category in self.binding.product_category_public_ids:
             self._export_dependency(extra_category, "magento.product.category")
         for link in self.binding.product_links:
-            self._export_dependency(link.product_id, "magento.product.product")        # Clear spezial prices here
+            self._export_dependency(link, "magento.product.product")        # Clear spezial prices here
         self._export_attribute_values()
         return
 
@@ -327,118 +321,6 @@ class ProductProductExporter(Component):
     def _export_stock(self):
         for stock_item in self.binding.magento_stock_item_ids:
             stock_item.sync_to_magento()
-
-    # def _get_magento_image_ids(self):
-    #     record = self.backend_adapter.read(self.external_id)
-    #     return [str(entry['id']) for entry in record.get('media_gallery_entries', []) if entry['media_type'] == 'image']
-    #
-    # def _get_odoo_magento_image_ids(self):
-    #     iids = []
-    #     # Only return images which are already exported from our side
-    #     for image in self.binding.magento_image_bind_ids.filtered(lambda i: i.external_id):
-    #         iids.append(image.external_id)
-    #     return iids
-    #
-    # def _check_one_image_main(self):
-    #     type_image_ids = self.binding.magento_image_bind_ids.filtered(lambda i: i.image_type_image)
-    #     if type_image_ids:
-    #         return
-    #     found = False
-    #     # Do recalc nice positions - to avoid duplicate positions
-    #     position = 1
-    #     for image in self.binding.magento_image_bind_ids.sorted(key=lambda x: x.position):
-    #         _logger.info("Do set new image position on %s to %s", self.binding, position)
-    #         if image.image_type_image:
-    #             image.with_context(connector_no_export=True).update({
-    #                 'position': 0,
-    #             })
-    #         else:
-    #             image.with_context(connector_no_export=True).update({
-    #                 'position': position,
-    #             })
-    #         position += 1
-    #     for image in self.binding.magento_image_bind_ids.sorted(key=lambda x: x.position):
-    #         if hasattr(image, 'odoo_id') and image.odoo_id and hasattr(image.odoo_id, 'is_primary_image') and image.odoo_id.is_primary_image:
-    #             image.update({
-    #                 'image_type_image': True,
-    #                 'image_type_small_image': True,
-    #                 'image_type_thumbnail': True,
-    #                 'image_type_swatch': True,
-    #             })
-    #             found = True
-    #             break
-    #     if not found:
-    #         for image in (self.binding.magento_image_bind_ids
-    #                         .filtered(lambda i: i.type == 'product_image')
-    #                         .sorted(key=lambda x: x.position)):
-    #             image.update({
-    #                 'image_type_image': True,
-    #                 'image_type_small_image': True,
-    #                 'image_type_thumbnail': True,
-    #                 'image_type_swatch': True,
-    #             })
-    #             found = True
-    #             break
-    #     if not found:
-    #         for image in self.binding.magento_image_bind_ids.filtered(lambda i: i.type == 'product_image_ids').sorted(key=sort_by_position):
-    #             image.update({
-    #                 'image_type_image': True,
-    #                 'image_type_small_image': True,
-    #                 'image_type_thumbnail': True,
-    #                 'image_type_swatch': True,
-    #             })
-    #             found = True
-    #             break
-    #     if not found:
-    #         for image in self.binding.magento_image_bind_ids.filtered(lambda i: i.type == 'attribute_image').sorted(key=sort_by_position):
-    #             image.update({
-    #                 'image_type_image': True,
-    #                 'image_type_small_image': True,
-    #                 'image_type_thumbnail': True,
-    #                 'image_type_swatch': True,
-    #             })
-    #             break
-    #
-    # def _delete_broken_image_bindings(self):
-    #     _logger.info("Do delete these broken image bindings: %s", self.binding.magento_image_bind_ids.filtered(lambda i: not i.type))
-    #     self.binding.magento_image_bind_ids.filtered(lambda i: not i.type).unlink()
-    #
-    # def _sync_images(self):
-    #     '''
-    #     Do delete images which are on magento side - but not on odoo side
-    #     :return:
-    #     '''
-    #     self._delete_broken_image_bindings()
-    #     magento_ids = self._get_magento_image_ids()
-    #     odoo_magento_ids = self._get_odoo_magento_image_ids()
-    #     magento_delete_ids = [mid for mid in magento_ids if mid not in odoo_magento_ids]
-    #     image_backend_adapter = self.component(usage='backend.adapter', model_name='magento.product.media')
-    #     for m_image_id in magento_delete_ids:
-    #         image_backend_adapter.delete((m_image_id, self.external_id,))
-    #     # Now check images which are on odoo side - but not on magento side
-    #     odoo_delete_ids = [mid for mid in odoo_magento_ids if mid not in magento_ids]
-    #     # Delete bindings
-    #     if odoo_delete_ids:
-    #         _logger.info("Do delete these image bindings which are not anymore on magento side: %s", self.env['magento.product.media'].search([
-    #             ('external_id', 'in', odoo_delete_ids),
-    #             ('backend_id', '=', self.backend_record.id),
-    #         ]))
-    #         self.env['magento.product.media'].search([
-    #             ('external_id', 'in', odoo_delete_ids),
-    #             ('backend_id', '=', self.backend_record.id),
-    #         ]).with_context(connector_no_export=True).sudo().unlink()
-    #     # Check for main image
-    #     self._check_one_image_main()
-    def _after_export(self):
-        '''
-        Base _after_export method
-        :return:
-        '''
-        _logger.info("AFTEREXPORT: In _after_export at %s", __name__)
-        # if not hasattr(self, 'light_sync') or not self.light_sync:
-        #     self._sync_images()
-        #     self._export_base_image()
-        #     self._export_stock()
 
 
 class ProductProductExportMapper(Component):
@@ -533,7 +415,7 @@ class ProductProductExportMapper(Component):
         else:
             val = record.backend_id.default_attribute_set_id.external_id
         return {'attributeSetId': val}
-
+    @mapping
     def get_custom_attributes(self, record):
         custom_attributes = []
         if record.product_type in ['simple','grouped']:
@@ -552,10 +434,11 @@ class ProductProductExportMapper(Component):
                     })
             if record.attribute_set_id:
                 for matt_id in record.attribute_set_id.attribute_ids.filtered(lambda a: a.field_id):
-                    custom_attributes.append({
-                        'attribute_code': matt_id.attribute_code,
-                        'value': record[matt_id.field_id.name]
-                    })
+                    if record[matt_id.field_id.name]:
+                        custom_attributes.append({
+                            'attribute_code': matt_id.attribute_code,
+                            'value': record[matt_id.field_id.name]
+                        })
             custom_attributes.append(self.category_ids(record))
             _logger.info("Do use custom attributes: %r", custom_attributes)
 

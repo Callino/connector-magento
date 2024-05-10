@@ -362,6 +362,7 @@ class ProductImporter(Component):
     _name = 'magento.product.product.importer'
     _inherit = 'magento.importer'
     _apply_on = ['magento.product.product']
+    _magento_id_field = 'sku'
 
     def _import_bundle_dependencies(self):
         """ Import the dependencies for a Bundle """

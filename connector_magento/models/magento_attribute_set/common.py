@@ -12,9 +12,21 @@ class MagentoProductAttributesSet(models.Model):
     _parent_name = 'backend_id'
 
     name = fields.Char(string = 'Set Name')
+    display_name = fields.Char(string = 'Display Name', compute='_compute_display_name')
     attribute_ids = fields.Many2many('magento.product.attribute', string='Attribute(s)')
     # attribute_group_ids = fields.One2many('magento.product.attributes.group', 'attribute_set_id', string="Groups")
 
+    @api.depends('name', 'backend_id')
+    def _compute_display_name(self):
+        for record in self:
+            record.display_name = f'{record.name}-{record.backend_id.name}'
+
+    @api.model
+    def name_get(self):
+        res = []
+        for record in self:
+            res.append((record.id, f'{record.name}-{record.backend_id.name}'))
+        return res
 
 class ProductAttributeSetAdapter(Component):
     _name = 'magento.product.attribute.set.adapter'

@@ -198,8 +198,11 @@ class MagentoImporter(AbstractComponent):
         skip = self._must_skip()    # pylint: disable=assignment-from-none
         if skip:
             return skip
-
-        binding = self._get_binding()
+        if kwargs.get('binding'):
+            binding = kwargs['binding']
+            del kwargs['binding']
+        else:
+            binding = self._get_binding()
 
         if not force and self._is_uptodate(binding):
             return _('Already up-to-date.')
