@@ -224,6 +224,10 @@ class ProductImportMapper(Component):
         return
 
     @mapping
+    def auto_create_variants(self, record):
+        return {'auto_create_variants': False}
+
+    @mapping
     def tax_class_id(self, record):
         _logger.info("Get tax_class_id from %s", record)
         tax_attribute = [a for a in record['custom_attributes'] if a['attribute_code'] == 'tax_class_id']
