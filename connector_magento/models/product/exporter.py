@@ -189,11 +189,11 @@ class ProductProductExporter(Component):
             update_data = map_record.values(binding=self.binding)
             _logger.info("Got Update data: %s", update_data)
             self.binding.with_context(connector_no_export=True).update(update_data)
-            stock_importer = self.component(
-                usage='record.importer',
-                model_name='magento.stock.item'
-            )
-            stock_importer.run(data['extension_attributes']['stock_item'])
+            # stock_importer = self.component(
+            #     usage='record.importer',
+            #     model_name='magento.stock.item'
+            # )
+            # stock_importer.run(data['extension_attributes']['stock_item'])
             self.external_id = data['sku']
             return False
         # Do use the importer to update the binding

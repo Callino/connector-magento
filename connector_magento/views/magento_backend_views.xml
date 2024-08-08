@@ -36,7 +36,7 @@
                             </group>
                         </page>
                         <page string="HTTP Authentication" name="auth" colspan="4" col="4">
-                            <group colspan="4" col="4">
+                            <group col="4">
                                 <field name="use_auth_basic" colspan="4"/>
                                 <field name="auth_basic_username" colspan="2"
                                        attrs="{'invisible': [('use_auth_basic', '=', False)], 'required': [('use_auth_basic', '=', True)]}"/>
@@ -177,6 +177,8 @@
                                 <field name="admin_location" placeholder="e.g. http://my.magento.com/admin"/>
                                 <field name="default_lang_id" widget="selection"/>
                                 <field name="default_category_id"/>
+                                <field name="default_attribute_set_id"/>
+                                <field name="no_stock_sync"/>
                                 <field name="sale_prefix" placeholder="mag-"/>
                                 <field name="product_stock_field_id" widget="selection"
                                        domain="[('model', 'in', ['product.product', 'product.template']), ('ttype', '=', 'float')]"/>
