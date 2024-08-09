@@ -174,6 +174,8 @@ class MagentoImporter(AbstractComponent):
 
         :param external_id: identifier of the record on Magento
         """
+        if not external_id:
+            return _('Empty ID')
         self.force = force
         if isinstance(external_id, dict):
             self.magento_record = external_id

@@ -2,17 +2,18 @@
 # Copyright 2013-2017 Camptocamp SA
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-import odoo
-from datetime import datetime
-
-from odoo.addons.component.core import Component
-from odoo.addons.connector.components.mapper import mapping, only_create
-from slugify import slugify
-from odoo.addons.connector_magento.components.backend_adapter import MAGENTO_DATETIME_FORMAT
-import magic
 import base64
 import logging
+from datetime import datetime
+
+import magic
+from slugify import slugify
+
+import odoo
 from odoo import _
+from odoo.addons.component.core import Component
+from odoo.addons.connector.components.mapper import mapping
+from odoo.addons.connector_magento.components.backend_adapter import MAGENTO_DATETIME_FORMAT
 
 _logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class ProductProductExporter(Component):
             record = self._update_data(map_record, fields=fields)
             if not record:
                 return _('Nothing to export.')
-            data = self._update(record,**kwargs)
+            data = self._update(record, **kwargs)
             if data:
                 self._update_binding_record_after_write(data)
         else:
@@ -56,7 +57,8 @@ class ProductProductExporter(Component):
                 return _('Nothing to export.')
             data = self._create(record)
             if not data:
-                raise UserWarning('Create did not returned anything on %s with binding id %s', self._name, self.binding.id)
+                raise UserWarning('Create did not returned anything on %s with binding id %s', self._name,
+                                  self.binding.id)
             self._update_binding_record_after_create(record)
         return _('Record exported with ID %s on Magento.') % self.external_id
 
@@ -98,7 +100,7 @@ class ProductProductExporter(Component):
             i = 0
             original_sku = sku
             while self._sku_inuse(sku):
-                sku = "%s-%s" % (original_sku[0:(63-len(str(i)))], i)
+                sku = "%s-%s" % (original_sku[0:(63 - len(str(i)))], i)
                 i += 1
                 _logger.info("Try next sku: %s", sku)
             self.binding.with_context(connector_no_export=True).external_id = sku
@@ -109,7 +111,7 @@ class ProductProductExporter(Component):
             '''
         return super(ProductProductExporter, self)._create_data(map_record, **kwargs)
 
-    def _create(self, data,  **kwargs):
+    def _create(self, data, **kwargs):
         """ Create the Magento record """
         # special check on data before export
         res = super(ProductProductExporter, self)._create(data, **kwargs)
@@ -215,7 +217,6 @@ class ProductProductExporter(Component):
         if self.backend_record.product_synchro_strategy == 'magento_first':
             self.binding.import_record(self.backend_record, self.external_id, force=True)
 
-
     def _export_attribute_values(self):
         # Then the attribute values
         record = self.binding
@@ -252,13 +253,12 @@ class ProductProductExporter(Component):
                 # We only do sync if a new attribute arrived
                 att_exporter.run(m_att_id)
 
-
     def _export_dependencies(self):
         """ Export the dependencies for the record"""
         for extra_category in self.binding.product_category_public_ids:
             self._export_dependency(extra_category, "magento.product.category")
         for link in self.binding.product_links:
-            self._export_dependency(link, "magento.product.product")        # Clear spezial prices here
+            self._export_dependency(link, "magento.product.product")  # Clear spezial prices here
         self._export_attribute_values()
         return
 
@@ -346,6 +346,19 @@ class ProductProductExportMapper(Component):
     def status(self, record):
         return {'status': '2' if not record.active else record.magento_status}
 
+    mime_to_extension = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/bmp': 'bmp',
+        'image/webp': 'webp',
+        'image/tiff': 'tiff',
+        'image/svg+xml': 'svg',
+        'image/x-icon': 'ico',
+        'image/vnd.microsoft.icon': 'ico',
+        'image/heif': 'heif',
+        'image/heic': 'heic'
+    }
     @mapping
     def get_extension_attributes(self, record):
         data = {}
@@ -372,6 +385,32 @@ class ProductProductExportMapper(Component):
             return {'product_links': data}
         return {}
 
+    @mapping
+    def images(self, record):
+        if record.image_ids:
+            media_gallery_entries = []
+            mime = magic.Magic(mime=True)
+            for image in record.image_ids:
+                mimetype = mime.from_buffer(base64.b64decode(image.image_1920))
+                extension = self.mime_to_extension.get(mimetype, 'jpg')
+                filename = f"{slugify(image.name)}.{extension}"
+                media_gallery_entries.append({
+                    "media_type": "image",
+                    "label": image.name,
+                    "types": [
+                        "image",
+                        "small_image",
+                        "thumbnail",
+                    ],
+                    "file": filename,
+                    "content": {
+                        "base64_encoded_data": image.image_1920,
+                        "type": mimetype,
+                        "name": image.name
+                    },
+                })
+            return {'media_gallery_entries': media_gallery_entries}
+        return {}
     def get_website_ids(self, record):
         if record.website_ids:
             website_ids = [s.external_id for s in record.website_ids]
@@ -380,7 +419,8 @@ class ProductProductExportMapper(Component):
         return {'website_ids': website_ids}
 
     def category_ids(self, record):
-        magento_categ_ids = record.product_category_public_ids.mapped('magento_bind_ids').filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
+        magento_categ_ids = record.product_category_public_ids.mapped('magento_bind_ids').filtered(
+            lambda bc: bc.backend_id.id == record.backend_id.id)
         c_ids = magento_categ_ids.mapped('external_id')
         return {
             'attribute_code': 'category_ids',
@@ -408,6 +448,7 @@ class ProductProductExportMapper(Component):
             })
         return {'media_gallery_entries': data}
     '''
+
     @mapping
     def attribute_set_id(self, record):
         if record.attribute_set_id:
@@ -415,10 +456,11 @@ class ProductProductExportMapper(Component):
         else:
             val = record.backend_id.default_attribute_set_id.external_id
         return {'attributeSetId': val}
+
     @mapping
     def get_custom_attributes(self, record):
         custom_attributes = []
-        if record.product_type in ['simple','grouped']:
+        if record.product_type in ['simple', 'grouped']:
             for line in record.attribute_line_ids:
                 """ Deal with Attributes in the 'variant' part of Odoo"""
                 matt_id = line.attribute_id.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)
@@ -446,7 +488,7 @@ class ProductProductExportMapper(Component):
 
     @mapping
     def price(self, record):
-        if record.backend_id.pricelist_id and record.backend_id.pricelist_id.discount_policy=='with_discount':
+        if record.backend_id.pricelist_id and record.backend_id.pricelist_id.discount_policy == 'with_discount':
             price = record.with_context(pricelist=record.backend_id.pricelist_id.id).price
         else:
             price = record['lst_price']

@@ -56,8 +56,8 @@ class MagentoProductProduct(models.Model):
     website_ids = fields.Many2many(comodel_name='magento.website',
                                    string='Websites',
                                    readonly=True)
-    created_at = fields.Date('Created At (on Magento)')
-    updated_at = fields.Date('Updated At (on Magento)')
+    created_at = fields.Datetime('Created At (on Magento)')
+    updated_at = fields.Datetime('Updated At (on Magento)')
     product_type = fields.Selection(selection='product_type_get',
                                     string='Magento Product Type',
                                     default='simple',

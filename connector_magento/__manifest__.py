@@ -10,8 +10,8 @@
              'product',
              'delivery',
              'sale_stock',
-             'product_multi_category',
              'connector_ecommerce',
+             'product_multi_image'
              ],
  'external_dependencies': {
      'python': ['magento'],

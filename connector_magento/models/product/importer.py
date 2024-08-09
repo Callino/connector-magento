@@ -317,8 +317,7 @@ class ProductImportMapper(Component):
     def attributes(self, record):
         attribute_binder = self.binder_for('magento.product.attribute')
         value_binder = self.binder_for('magento.product.attribute.value')
-        attribute_line_ids = [(5, 0, 0)]
-        # attribute_line_ids = []
+        attribute_line_ids = []
         data = {}
         value_ids = []
         for attribute in record['custom_attributes']:
@@ -343,7 +342,10 @@ class ProductImportMapper(Component):
                 data.update({
                     'attribute_line_ids': attribute_line_ids,
                 })
-
+        binding = self.options.get('binding')
+        if binding:
+            # data['attribute_line_ids'] = [(5,0,0)] + data['attribute_line_ids']
+            del data['attribute_line_ids']
         if self.options.get('binding_template_id') and len(value_ids):
             if data.get('attribute_line_ids'):
                 del data['attribute_line_ids']
@@ -482,8 +484,25 @@ class ProductImporter(Component):
         res = super()._update(binding, data, **kwargs)
         return res
 
+    def _after_import_attributes(self, binding):
+        ptav_obj = self.env['product.template.attribute.value']
+        for attribute_line in binding.attribute_line_ids:
+            for value in attribute_line.value_ids:
+                ptav = ptav_obj.search([
+                    ('product_attribute_value_id', '=', value.id),
+                    ('attribute_line_id', '=', attribute_line.id)
+                ])
+                if not ptav:
+                    ptav=ptav_obj.create({
+                        'product_attribute_value_id': value.id,
+                        'attribute_line_id': attribute_line.id,
+                    })
+                if ptav and binding.id not in ptav.ptav_product_variant_ids.ids:
+                        binding.write({'product_template_attribute_value_ids': [(4, ptav.id)]})
+
     def _after_import(self, binding):
         """ Hook called at the end of the import """
+        self._after_import_attributes(binding)
         translation_importer = self.component(
             usage='translation.importer',
         )
