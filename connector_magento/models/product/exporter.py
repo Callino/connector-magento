@@ -386,7 +386,7 @@ class ProductProductExportMapper(Component):
         return {}
 
     @mapping
-    def images(self, record):
+    def media_gallery_entries(self, record):
         if record.image_ids:
             media_gallery_entries = []
             mime = magic.Magic(mime=True)
@@ -429,25 +429,7 @@ class ProductProductExportMapper(Component):
 
     @mapping
     def weight(self, record):
-        if record.weight:
-            val = record.weight
-        else:
-            val = 0
-        return {'weight': val}
-
-    '''
-    @mapping
-    def media_gallery_entries(self, record):
-        data = []
-        for image in record.magento_image_bind_ids:
-            data.append({
-                'id': image.external_id,
-                "media_type": "image",
-                "label": image.label,
-                "position": image.position,
-            })
-        return {'media_gallery_entries': data}
-    '''
+        return {'weight': int(record.weight) or 0}
 
     @mapping
     def attribute_set_id(self, record):
