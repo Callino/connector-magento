@@ -101,23 +101,23 @@ class CatalogImageImporter(Component):
         request.raise_for_status()
         return request.content
 
-    def _write_image_data(self, binding, binary, image_data):
-        binding = binding.with_context(connector_no_export=True)
-        binding.write({'image_1920': base64.b64encode(binary)})
+def run(self, external_id, binding, data=None):
+    self.external_id = external_id
+    images = self._get_images(data=data)
+    images = self._sort_images(images)
+    image_ids = []
 
-    def run(self, external_id, binding, data=None):
-        self.external_id = external_id
-        images = self._get_images(data=data)
-        images = self._sort_images(images)
-        binary = None
-        image_data = None
-        while not binary and images:
-            image_data = images.pop()
-            binary = self._get_binary_image(image_data)
-        if not binary:
-            return
-        self._write_image_data(binding, binary, image_data)
+    for image_data in images:
+        binary = self._get_binary_image(image_data)
+        if binary:
+            image_ids.append({
+                'image_1920': base64.b64encode(binary),
+                'name': image_data.get('label', ''),
+            })
 
+    binding.with_context(connector_no_export=True).write({
+        'image_ids': [(0, 0, x) for x in image_ids]
+    })
 
 # TODO: not needed, use inheritance
 class BundleImporter(Component):

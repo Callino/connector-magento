@@ -393,20 +393,20 @@ class ProductProductExportMapper(Component):
             for image in record.image_ids:
                 mimetype = mime.from_buffer(base64.b64decode(image.image_1920))
                 extension = self.mime_to_extension.get(mimetype, 'jpg')
-                filename = f"{slugify(image.name)}.{extension}"
+                filename = f"{slugify(image.name or record.default_code)}.{extension}"
                 media_gallery_entries.append({
                     "media_type": "image",
-                    "label": image.name,
+                    "label": image.name or record.name,
                     "types": [
                         "image",
                         "small_image",
                         "thumbnail",
                     ],
-                    "file": filename,
+                    # "file": filename,
                     "content": {
                         "base64_encoded_data": image.image_1920,
                         "type": mimetype,
-                        "name": image.name
+                        "name": filename,
                     },
                 })
             return {'media_gallery_entries': media_gallery_entries}
