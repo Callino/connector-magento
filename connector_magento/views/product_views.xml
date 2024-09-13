@@ -22,6 +22,10 @@
                         <tree>
                             <field name="backend_id"/>
                             <field name="product_type"/>
+                            <button name="sync_to_magento" string="To Magento" type="object"
+                                    class="oe_highlight"/>
+                            <button name="sync_from_magento" string="From Magento" type="object"
+                                    class="oe_highlight"/>
                         </tree>
                     </field>
                 </group>
@@ -34,7 +38,7 @@
         <field name="model">magento.product.product</field>
         <field name="arch" type="xml">
             <search string="">
-                <field name="default_code" string="Default Code" />
+                <field name="default_code" string="Default Code"/>
                 <field name="backend_id" string="Backend"/>
             </search>
         </field>
@@ -105,9 +109,10 @@
                 <field name="default_code"/>
                 <field name="backend_id"/>
                 <field name="product_type"/>
-                <button name="export_record" string="Export to Magento" type="object"
-                        class="oe_highlight"/>
-            </tree>
+                    <button name="sync_to_magento" string="To Magento" type="object"
+                            class="oe_highlight"/>
+                    <button name="sync_from_magento" string="From Magento" type="object"
+                            class="oe_highlight"/>            </tree>
         </field>
     </record>
 

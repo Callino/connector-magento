@@ -159,6 +159,12 @@ class MagentoProductTemplate(models.Model):
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    product_category_public_ids = fields.Many2many(
+        comodel_name='product.category.public',
+        relation='product_category_public_rel',
+        string='Public Categories',
+    )
+
     @api.depends('job_ids', 'job_ids.state')
     def _compute_job_counts(self):
         for template in self.sudo():

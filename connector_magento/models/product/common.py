@@ -94,6 +94,8 @@ class MagentoProductProduct(models.Model):
     attribute_set_id = fields.Many2one(
         comodel_name='magento.product.attribute.set',
         string='Attribute Set',
+        required=True,
+        default=lambda self: self.env['magento.product.attribute.set'].search([])[0],
     )
     magento_status = fields.Selection([
         ('2', 'Disabled'),
@@ -226,16 +228,6 @@ class MagentoProductProduct(models.Model):
         raise UserError(_(
             'We have to import the product before we can provide the admin '
             'link to it.'))
-
-class ProductTemplate(models.Model):
-    _inherit = 'product.template'
-
-    product_category_public_ids = fields.Many2many(
-        comodel_name='product.category.public',
-        relation='product_category_public_rel',
-        string='Public Categories',
-    )
-
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'

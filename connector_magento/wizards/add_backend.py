@@ -35,9 +35,17 @@ class WizardModel(models.TransientModel):
     # @api.multi
     def _get_ids_and_model(self):
         active_model = self.env.context.get('active_model', False)
-        if hasattr(self.env[active_model], 'magento_bind_ids'):
+        binding_field= 'magento_bind_ids'
+        if active_model == 'product.template':
+            binding_field = 'magento_variant_bind_ids'
+
+        if hasattr(self.env[active_model],binding_field):
             bindings=self.env[active_model].browse(self.env.context.get('active_ids', []))
-            return bindings , self.env[active_model].magento_bind_ids._name
+            if active_model == 'product.template':
+                # Necesito que me devuelva en el caso de product_template los productos variantes
+                # que estan asociados a la plantilla
+                bindings = bindings.mapped('product_variant_ids')
+            return bindings , getattr(bindings,binding_field)._name
         else:
             raise ValueError('Model not supported')
 
@@ -55,10 +63,22 @@ class WizardModel(models.TransientModel):
                     'odoo_id': model.id,
                     'backend_id': self.backend_id.id
                 }
-                self.env[dest_model].create(vals)
+                binding=self.env[dest_model].create(vals)
+                if self.action == 'import':
+                    if getattr(binding, 'sync_from_magento', False):
+                        binding.sync_from_magento()
+                elif self.action == 'export':
+                    if getattr(binding, 'sync_to_magento', False):
+                        binding.sync_to_magento()
 
     backend_id = fields.Many2one(comodel_name='magento.backend', required=True, default=get_default_backend)
     model_id = fields.Many2one('ir.model', default=get_default_model)
+    action = fields.Selection([
+        ('only_create', 'Only create binding'),
+        ('import', 'Import'),
+        ('export', 'Export'),
+    ], default='export', required=True)
+
 
     def action_accept(self):
         self.ensure_one()

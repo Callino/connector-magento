@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="product_template_form_view" model="ir.ui.view">
+            <field name="name">product.template.common.form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Magento Bindings">
+                        <field name="magento_bind_ids" attrs="{'invisible': [('magento_bind_ids','!=',False)]}"/>
+                        <field name="magento_variant_bind_ids" attrs="{'invisible': [('magento_variant_bind_ids','!=',False)]}"/>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+    </data>
+</odoo>
