@@ -9,7 +9,7 @@
             <page name="connector" position="attributes">
                 <attribute name="invisible">0</attribute>
             </page>
-            <field name="categ_ids" position="after">
+            <field name="categ_id" position="after">
                 <field name="product_category_public_ids">
                     <tree editable="bottom">
                         <field name="name"/>

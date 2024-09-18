@@ -62,6 +62,8 @@
         <field name="res_model">magento.product.category</field>
         <field name="view_mode">tree,form</field>
     </record>
+
+
     <record model="ir.actions.act_window" id="action_magento_product_template_attribute_line">
         <field name="name">Magento Product Template Attribute Line</field>
         <field name="res_model">magento.product.template.attribute.line</field>
@@ -105,7 +107,7 @@
               action="action_magento_storeview"/>
 
     <menuitem id="menu_magento_category"
-              name="Magento Categories"
+              name="Public Categories"
               parent="menu_magento_root"
               sequence="50"
               action="action_product_category_public"/>
@@ -138,6 +140,12 @@
               parent="menu_magento_root"
               sequence="90"
               action="action_magento_product_template"/>
+
+    <menuitem id="menu_product_product_categories"
+                name="Public Categories"
+                parent="stock.menu_product_in_config_stock"
+                sequence="95"
+                action="action_product_category_public"/>
 
     <menuitem id="menu_magento_product_category"
               name="Magento Product Categories"
