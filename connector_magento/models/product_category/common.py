@@ -42,6 +42,12 @@ class ProductCategoryPublic(models.Model):
     product_tmpl_ids = fields.Many2many('product.template', relation='product_category_public_product_template_rel')
     parent_path = fields.Char(index=True, unaccent=False)
     parents_and_self = fields.Many2many('product.category.public', compute='_compute_parents_and_self')
+    display_name = fields.Char(compute='_compute_display_name', store=True)
+
+    @api.depends('name', 'parent_id.name')
+    def _compute_display_name(self):
+        for category in self:
+            category.display_name = category.name
 
     magento_bind_ids = fields.One2many(
         comodel_name='magento.product.category',
