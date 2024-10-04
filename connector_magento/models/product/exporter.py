@@ -390,10 +390,12 @@ class ProductProductExportMapper(Component):
         if record.image_ids:
             media_gallery_entries = []
             mime = magic.Magic(mime=True)
+            image_count=0
             for image in record.image_ids:
                 mimetype = mime.from_buffer(base64.b64decode(image.image_1920))
                 extension = self.mime_to_extension.get(mimetype, 'jpg')
-                filename = f"{slugify(image.name or record.default_code)}.{extension}"
+                filename = f"{slugify(image.name or record.default_code)}_{record.id}_{image_count}.{extension}"
+                image_count += 1
                 media_gallery_entries.append({
                     "media_type": "image",
                     "label": image.name or record.name,
