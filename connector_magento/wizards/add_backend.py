@@ -84,6 +84,7 @@ class WizardModel(models.TransientModel):
         # ('downloadable', 'Downloadable Product'),
     ], default='simple', required=True)
     product_links = fields.Many2many('magento.product.product',
+                                     'magento_product_product_grouped_rel',
                                         string='Linked Products')
     backend_id = fields.Many2one(comodel_name='magento.backend', required=True, default=get_default_backend)
     model_id = fields.Many2one('ir.model', default=get_default_model)
