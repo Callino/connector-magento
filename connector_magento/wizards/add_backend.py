@@ -61,8 +61,11 @@ class WizardModel(models.TransientModel):
             if not bind_count:
                 vals = {
                     'odoo_id': model.id,
-                    'backend_id': self.backend_id.id
+                    'backend_id': self.backend_id.id,
+                    'product_type': self.product_type
                 }
+                if self.product_type == 'grouped':
+                    vals['product_links'] = [(6, 0, self.product_links.ids)]
                 binding=self.env[dest_model].create(vals)
                 if self.action == 'import':
                     if getattr(binding, 'sync_from_magento', False):
@@ -71,6 +74,17 @@ class WizardModel(models.TransientModel):
                     if getattr(binding, 'sync_to_magento', False):
                         binding.sync_to_magento()
 
+    # Fields
+    product_type = fields.Selection([
+        ('simple', 'Simple Product'),
+        # ('configurable', 'Configurable Product'),
+        ('grouped', 'Grouped Product'),
+        # ('bundle', 'Bundle Product'),
+        # ('virtual', 'Virtual Product'),
+        # ('downloadable', 'Downloadable Product'),
+    ], default='simple', required=True)
+    product_links = fields.Many2many('magento.product.product',
+                                        string='Linked Products')
     backend_id = fields.Many2one(comodel_name='magento.backend', required=True, default=get_default_backend)
     model_id = fields.Many2one('ir.model', default=get_default_model)
     action = fields.Selection([
