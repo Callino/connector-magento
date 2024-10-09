@@ -30,7 +30,7 @@ class MagentoProductAttribute(models.Model):
     attribute_id = fields.Integer(string='Magento Attribute ID')
     attribute_code = fields.Char(string='Magento Attribute Attribute Code')
     is_user_defined = fields.Boolean(string='Magento Attribute User Defined')
-    force_import = fields.Boolean(string='Force Import', default=False)
+    exclude = fields.Boolean(string='Exclude from Import', default=False)
     nl2br = fields.Boolean('Enable NL2BR', default=False)
     frontend_input = fields.Selection([
         ('text', 'Text'),

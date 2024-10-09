@@ -20,7 +20,7 @@
                                     <field name="attribute_id"/>
                                     <field name="attribute_code"/>
                                     <field name="is_user_defined"/>
-                                    <field name="force_import"/>
+                                    <field name="exclude"/>
                                     <field name="nl2br"/>
                                     <field name="frontend_input"/>
                                     <field name="attribute_set_ids"/>
@@ -56,7 +56,7 @@
                     <field name="odoo_id"/>
                     <field name="attribute_code"/>
                     <field name="is_user_defined"/>
-                    <field name="force_import"/>
+                    <field name="exclude"/>
                     <field name="field_id"/>
                     <field name="frontend_input"/>
                 </tree>
