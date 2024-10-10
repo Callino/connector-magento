@@ -108,23 +108,23 @@ class CatalogImageImporter(Component):
         images = self._sort_images(images)
         image_ids = []
         data = {}
+        # if len(images):
+        #     data['image_1920'] = base64.b64encode(self._get_binary_image(images[0]))
         if len(images):
-            data['image_1920'] = base64.b64encode(self._get_binary_image(images[0]))
-        if len(images) > 1:
-            images.pop(0)
+            # images.pop(0)
             c = 0
             for image_data in images:
                 binary = self._get_binary_image(image_data)
                 if binary:
-                    if image_data.get('label','') == '':
+                    if image_data.get('label', '') == '':
                         image_data['label'] = 'image_{}'.format(c)
                     image_ids.append({
                         'image_1920': base64.b64encode(binary),
-                        'name': image_data.get('label',''),
+                        'name': image_data.get('label', ''),
                         'owner_model': binding.odoo_id._name,
                         'owner_id': binding.odoo_id.id, })
                 c = c + 1
-            data['image_ids'] = [(0, 0, x) for x in image_ids]
+            data['image_ids'] = [(6, 0, 0)] + [(0, 0, x) for x in image_ids]
         binding.with_context(connector_no_export=True).write(data)
 
 
