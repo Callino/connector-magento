@@ -333,11 +333,11 @@ class ProductImportMapper(Component):
             mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False,
                                                       external_field='attribute_code')
             if mattribute:
+                if mattribute.exclude:
+                    continue
                 if mattribute.field_id:
                     data.update({mattribute.field_id.name: attribute['value']})
                 if mattribute.create_variant == 'no_variant' or not mattribute.is_user_defined:
-                    continue
-                if mattribute.is_user_defined and mattribute.exclude:
                     continue
                 mvalue = value_binder.to_internal("%s_%s" % (mattribute.attribute_id, str(attribute['value'])),
                                                   unwrap=False)
