@@ -111,6 +111,7 @@ class CatalogImageImporter(Component):
         # if len(images):
         #     data['image_1920'] = base64.b64encode(self._get_binary_image(images[0]))
         if len(images):
+            binding.image_ids.unlink()
             # images.pop(0)
             c = 0
             for image_data in images:
