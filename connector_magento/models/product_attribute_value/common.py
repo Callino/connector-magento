@@ -60,6 +60,8 @@ class ProductAttributeValueAdapter(Component):
     _magento2_key = 'id'
     _magento2_name = 'option'
 
+
+
     def read(self, id, attributes=None,storeview=None, **kwargs):
         """ Returns the information of a record
 

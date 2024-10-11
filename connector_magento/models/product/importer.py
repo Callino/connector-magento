@@ -425,6 +425,8 @@ class ProductImporter(Component):
         # import related categories
         self._import_dependency(record['attribute_set_id'],
                                 'magento.product.attribute.set')
+        # Check and import attributes and values if they do not exist
+        self._import_attributes(record)
         for mag_category_id in (record.get('category_ids') or record.get(
             'categories', [])):
             self._import_dependency(mag_category_id,
@@ -435,6 +437,25 @@ class ProductImporter(Component):
             for child in record['product_links']:
                 self._import_dependency(child['linked_product_sku'],
                                         'magento.product.product')
+
+    def _import_attributes(self, record):
+        attribute_binder = self.binder_for('magento.product.attribute')
+        value_binder = self.binder_for('magento.product.attribute.value')
+        for attribute in record['custom_attributes']:
+            mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False,
+                                                      external_field='attribute_code')
+            if not mattribute:
+                self._import_dependency(attribute['attribute_code'], 'magento.product.attribute')
+                mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False,
+                                                          external_field='attribute_code')
+            if mattribute and mattribute.is_user_defined and mattribute.create_variant != 'no_variant':
+                mvalue = value_binder.to_internal("%s_%s" % (mattribute.attribute_id, str(attribute['value'])),
+                                                  unwrap=False)
+                if not mvalue:
+                    self._import_dependency(str(attribute['value']),
+                                            'magento.product.attribute.value',
+                                            attribute_code=attribute['attribute_code'],
+                                            magento_attribute=mattribute)
 
     def _validate_product_type(self, data):
         """ Check if the product type is in the selection (so we can

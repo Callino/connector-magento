@@ -46,6 +46,10 @@ class AttributeValueImportMapper(Component):
         }
 
     @mapping
+    def external_id(self, record):
+        return {'external_id': '{}_{}'.format(self.options.magento_attribute.attribute_id,record.get('value'))}
+
+    @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
 
