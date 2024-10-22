@@ -5,14 +5,15 @@
 import base64
 import logging
 import sys
+import os
 
 import requests
 
 from odoo import _
 from odoo.addons.component.core import Component
-from odoo.addons.connector.components.mapper import mapping, only_create
+from odoo.addons.connector.components.mapper import mapping, only_create, convert
 from odoo.addons.connector.exception import MappingError, InvalidDataError
-from ...components.mapper import normalize_datetime
+from odoo.addons.connector_magento.components.mapper import normalize_datetime
 
 _logger = logging.getLogger(__name__)
 
@@ -76,7 +77,7 @@ class CatalogImageImporter(Component):
                 position = int(image['position'])
             except ValueError:
                 position = sys.maxsize
-            return (primary, -position)
+            return (primary, position)
 
         return sorted(images, key=priority)
 
@@ -108,22 +109,24 @@ class CatalogImageImporter(Component):
         images = self._sort_images(images)
         image_ids = []
         data = {}
-        # if len(images):
-        #     data['image_1920'] = base64.b64encode(self._get_binary_image(images[0]))
         if len(images):
-            binding.image_ids.unlink()
-            # images.pop(0)
+            # binding.image_ids.unlink()
+            # data['image_1920'] = base64.b64encode(self._get_binary_image(images[0]))
+        # if len(images) > 1:
+        #     images.pop(0)
             c = 0
-            for image_data in images:
+            for image_data in [ i for i in images if not i['disabled']]:
                 binary = self._get_binary_image(image_data)
                 if binary:
-                    if image_data.get('label', '') == '':
-                        image_data['label'] = 'image_{}'.format(c)
+                    if image_data.get('label','') == '':
+                        image_data['label'] = os.path.basename(image_data.get('file','image_{}'.format(c)))
                     image_ids.append({
                         'image_1920': base64.b64encode(binary),
-                        'name': image_data.get('label', ''),
+                        'name': image_data.get('label',''),
                         'owner_model': binding.odoo_id._name,
-                        'owner_id': binding.odoo_id.id, })
+                        'owner_id': binding.odoo_id.id,
+                        'sequence': image_data.get('position', c),
+                    })
                 c = c + 1
             data['image_ids'] = [(6, 0, 0)] + [(0, 0, x) for x in image_ids]
         binding.with_context(connector_no_export=True).write(data)
@@ -185,6 +188,9 @@ class ProductImportMapper(Component):
               ('id', 'magento_internal_id'),
               ('description', 'description'),
               ('weight', 'weight'),
+              (convert('status',str), 'magento_status'),
+              (convert('visibility',str), 'magento_visibility'),
+              ('url_key', 'magento_url_key'),
               # (convert('cost', float), 'standard_price'),
               # (convert('price',float), 'list_price'),
               # ('short_description', 'description_sale'),
@@ -210,13 +216,13 @@ class ProductImportMapper(Component):
         if self.collection.version == '2.0':
             return {'external_id': record['sku']}
 
-    @mapping
-    def is_active(self, record):
-        """Check if the product is active in Magento
-        and set active flag in OpenERP
-        status == 1 in Magento means active.
-        Magento 2.x returns an integer, 1.x a string """
-        return {'active': (record.get('status') in (1, '1'))}
+    # @mapping
+    # def is_active(self, record):
+    #     """Check if the product is active in Magento
+    #     and set active flag in OpenERP
+    #     status == 1 in Magento means active.
+    #     Magento 2.x returns an integer, 1.x a string """
+    #     return {'active': (record.get('status') in (1, '1'))}
 
     @mapping
     def price(self, record):
