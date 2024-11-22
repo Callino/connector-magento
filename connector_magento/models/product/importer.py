@@ -5,15 +5,14 @@
 import base64
 import logging
 import sys
-import os
 
 import requests
 
 from odoo import _
 from odoo.addons.component.core import Component
-from odoo.addons.connector.components.mapper import mapping, only_create, convert
+from odoo.addons.connector.components.mapper import mapping, only_create
 from odoo.addons.connector.exception import MappingError, InvalidDataError
-from odoo.addons.connector_magento.components.mapper import normalize_datetime
+from ...components.mapper import normalize_datetime
 
 _logger = logging.getLogger(__name__)
 
@@ -77,7 +76,7 @@ class CatalogImageImporter(Component):
                 position = int(image['position'])
             except ValueError:
                 position = sys.maxsize
-            return (primary, position)
+            return (primary, -position)
 
         return sorted(images, key=priority)
 
@@ -110,25 +109,22 @@ class CatalogImageImporter(Component):
         image_ids = []
         data = {}
         if len(images):
-            # binding.image_ids.unlink()
-            # data['image_1920'] = base64.b64encode(self._get_binary_image(images[0]))
-        # if len(images) > 1:
-        #     images.pop(0)
+            data['image_1920'] = base64.b64encode(self._get_binary_image(images[0]))
+        if len(images) > 1:
+            images.pop(0)
             c = 0
-            for image_data in [ i for i in images if not i['disabled']]:
+            for image_data in images:
                 binary = self._get_binary_image(image_data)
                 if binary:
                     if image_data.get('label','') == '':
-                        image_data['label'] = os.path.basename(image_data.get('file','image_{}'.format(c)))
+                        image_data['label'] = 'image_{}'.format(c)
                     image_ids.append({
                         'image_1920': base64.b64encode(binary),
                         'name': image_data.get('label',''),
                         'owner_model': binding.odoo_id._name,
-                        'owner_id': binding.odoo_id.id,
-                        'sequence': image_data.get('position', c),
-                    })
+                        'owner_id': binding.odoo_id.id, })
                 c = c + 1
-            data['image_ids'] = [(6, 0, 0)] + [(0, 0, x) for x in image_ids]
+            data['image_ids'] = [(0, 0, x) for x in image_ids]
         binding.with_context(connector_no_export=True).write(data)
 
 
@@ -188,9 +184,6 @@ class ProductImportMapper(Component):
               ('id', 'magento_internal_id'),
               ('description', 'description'),
               ('weight', 'weight'),
-              (convert('status',str), 'magento_status'),
-              (convert('visibility',str), 'magento_visibility'),
-              ('url_key', 'magento_url_key'),
               # (convert('cost', float), 'standard_price'),
               # (convert('price',float), 'list_price'),
               # ('short_description', 'description_sale'),
@@ -216,13 +209,13 @@ class ProductImportMapper(Component):
         if self.collection.version == '2.0':
             return {'external_id': record['sku']}
 
-    # @mapping
-    # def is_active(self, record):
-    #     """Check if the product is active in Magento
-    #     and set active flag in OpenERP
-    #     status == 1 in Magento means active.
-    #     Magento 2.x returns an integer, 1.x a string """
-    #     return {'active': (record.get('status') in (1, '1'))}
+    @mapping
+    def is_active(self, record):
+        """Check if the product is active in Magento
+        and set active flag in OpenERP
+        status == 1 in Magento means active.
+        Magento 2.x returns an integer, 1.x a string """
+        return {'active': (record.get('status') in (1, '1'))}
 
     @mapping
     def price(self, record):
@@ -340,11 +333,11 @@ class ProductImportMapper(Component):
             mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False,
                                                       external_field='attribute_code')
             if mattribute:
-                if mattribute.exclude:
-                    continue
                 if mattribute.field_id:
                     data.update({mattribute.field_id.name: attribute['value']})
                 if mattribute.create_variant == 'no_variant' or not mattribute.is_user_defined:
+                    continue
+                if mattribute.is_user_defined and mattribute.exclude:
                     continue
                 mvalue = value_binder.to_internal("%s_%s" % (mattribute.attribute_id, str(attribute['value'])),
                                                   unwrap=False)
@@ -431,8 +424,6 @@ class ProductImporter(Component):
         # import related categories
         self._import_dependency(record['attribute_set_id'],
                                 'magento.product.attribute.set')
-        # Check and import attributes and values if they do not exist
-        self._import_attributes(record)
         for mag_category_id in (record.get('category_ids') or record.get(
             'categories', [])):
             self._import_dependency(mag_category_id,
@@ -443,25 +434,6 @@ class ProductImporter(Component):
             for child in record['product_links']:
                 self._import_dependency(child['linked_product_sku'],
                                         'magento.product.product')
-
-    def _import_attributes(self, record):
-        attribute_binder = self.binder_for('magento.product.attribute')
-        value_binder = self.binder_for('magento.product.attribute.value')
-        for attribute in record['custom_attributes']:
-            mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False,
-                                                      external_field='attribute_code')
-            if not mattribute:
-                self._import_dependency(attribute['attribute_code'], 'magento.product.attribute')
-                mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False,
-                                                          external_field='attribute_code')
-            if mattribute and mattribute.is_user_defined and mattribute.create_variant != 'no_variant':
-                mvalue = value_binder.to_internal("%s_%s" % (mattribute.attribute_id, str(attribute['value'])),
-                                                  unwrap=False)
-                if not mvalue:
-                    self._import_dependency(str(attribute['value']),
-                                            'magento.product.attribute.value',
-                                            attribute_code=attribute['attribute_code'],
-                                            magento_attribute=mattribute)
 
     def _validate_product_type(self, data):
         """ Check if the product type is in the selection (so we can
