@@ -201,6 +201,8 @@ class SaleOrderLine(models.Model):
 
     @api.model
     def create(self, vals):
+        if not self.magento_bind_ids:
+            return super(SaleOrderLine, self).create(vals)
         old_line_id = None
         if self.env.context.get('__copy_from_quotation'):
             # when we are copying a sale.order from a canceled one,
@@ -220,6 +222,8 @@ class SaleOrderLine(models.Model):
 
     # @api.multi
     def copy_data(self, default=None):
+        if not self.magento_bind_ids:
+            return super(SaleOrderLine, self).copy_data(default=default)
         data = super(SaleOrderLine, self).copy_data(default=default)[0]
         if self.env.context.get('__copy_from_quotation'):
             # copy_data is called by `copy` of the sale.order which
