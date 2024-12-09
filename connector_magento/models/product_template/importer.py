@@ -263,7 +263,7 @@ class ProductTemplateImporter(Component):
                 if not attribute_value:
                     # Do update the attribute - so the value will get added
                     self._import_dependency(product_option['attribute_id'], 'magento.product.attribute', always=True)
-        # self._import_stock_warehouse()
+        self._import_stock_warehouse()
 
 
 class ProductTemplateImportMapper(Component):

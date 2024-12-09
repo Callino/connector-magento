@@ -90,6 +90,10 @@
                         <page name="data" string="JSON Data">
                             <field name="data_str" nolabel="1" colspan="4"/>
                         </page>
+                        <page name="stock" string="Stock Values">
+                            <label for="magento_stock_item_ids"/>
+                            <field name="magento_stock_item_ids" nolabel="1"/>
+                        </page>
                     </notebook>
                 </sheet>
             </form>

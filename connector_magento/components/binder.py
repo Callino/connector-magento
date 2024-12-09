@@ -29,6 +29,8 @@ class MagentoModelBinder(Component):
         'magento.product.category',
         'magento.product.product',
         'magento.stock.picking',
+        'magento.stock.item',
+        'magento.stock.warehouse',
         'magento.sale.order',
         'magento.sale.order.line',
         'magento.account.invoice',

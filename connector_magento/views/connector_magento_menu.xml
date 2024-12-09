@@ -159,4 +159,14 @@
               sequence="110"
               action="action_magento_product_template_attribute_line"/>
 
+    <record id="action_magento_warehouse" model="ir.actions.act_window">
+        <field name="name">Magento Warehouse</field>
+        <field name="res_model">magento.stock.warehouse</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="connector_magento.menu_magento_warehouse"
+			name="Magento Warehouse"
+			parent="menu_magento_root"
+			action="action_magento_warehouse" sequence="300"/>
+
 </odoo>

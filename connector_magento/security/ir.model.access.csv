@@ -46,3 +46,5 @@
 "access_magento_product_template_attribute_line","access_magento_product_template_attribute_line connector manager","model_magento_product_template_attribute_line","connector.group_connector_manager",1,1,1,1
 "access_magento_addbackend_wizard","access_magento_addbackend_wizard! connector manager","model_connector_magento_add_backend_wizard","connector.group_connector_manager",1,1,1,1
 "access_magento_binding_read","access_magento_binding_read connector manager","model_magento_binding_backend_read","connector.group_connector_manager",1,1,1,1
+"access_magento_stock_item","access_magento_stock_item connector manager","model_magento_stock_item","connector.group_connector_manager",1,1,1,1
+"access_magento_stock_warehouse","access_magento_stock_warehouse connector manager","model_magento_stock_warehouse","connector.group_connector_manager",1,1,1,1

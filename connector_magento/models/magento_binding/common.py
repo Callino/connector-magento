@@ -82,6 +82,7 @@ class MagentoBinding(models.AbstractModel):
         with backend.work_on(self._name) as work:
             deleter = work.component(usage='record.exporter.deleter')
             return deleter.run(external_id)
+
     def sync_from_magento(self):
         for binding in self:
             binding.with_delay(identity_key=identity_exact).import_record( self.backend_id, self.external_id,force=True)

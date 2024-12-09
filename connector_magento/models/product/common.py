@@ -118,6 +118,11 @@ class MagentoProductProduct(models.Model):
         column2='linked_product_id',
         string='Related Products',
     )
+    magento_stock_item_ids = fields.One2many(
+        comodel_name='magento.stock.item',
+        inverse_name='magento_product_binding_id',
+        string="Magento Stock Items",
+    )
 
 
      # @api.multi

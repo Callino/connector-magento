@@ -513,6 +513,7 @@ class ProductImporter(Component):
         if 'active' in data and not data.get('active'):
             binding.mapped('orderpoint_ids').write({'active': False})
         res = super()._update(binding, data, **kwargs)
+
         return res
 
     def _after_import_attributes(self, binding):
@@ -534,9 +535,30 @@ class ProductImporter(Component):
         if ptav_ids:
             binding.write({'product_template_attribute_value_ids': [(6, 0, ptav_ids)]})
 
+    def _import_stock_warehouse(self):
+        record = self.magento_record
+        stock_item = record['extension_attributes']['stock_item']
+        binder = self.binder_for('magento.stock.warehouse')
+        mwarehouse = binder.to_internal(stock_item['stock_id'])
+        if not mwarehouse:
+            # We do create the warehouse binding directly here - did not found a mapping on magento api
+            # We do create the warehouse binding directly here - did not found a mapping on magento api
+            binding = self.env['magento.stock.warehouse'].create({
+                'backend_id': self.backend_record.id,
+                'external_id': stock_item['stock_id'],
+                'odoo_id': self.env['stock.warehouse'].search([('company_id', '=', self.backend_record.company_id.id)], limit=1).id,
+            })
+            self.backend_record.add_checkpoint(binding)
+
+    def _import_stock(self, binding):
+        stock_importer = self.component(usage='record.importer',
+                                        model_name='magento.stock.item')
+        stock_importer.run(self.magento_record['extension_attributes']['stock_item'])
+
     def _after_import(self, binding):
         """ Hook called at the end of the import """
         self._after_import_attributes(binding)
+        self._import_stock(binding)
         translation_importer = self.component(
             usage='translation.importer',
         )
@@ -551,6 +573,7 @@ class ProductImporter(Component):
         if self.magento_record['type_id'] == 'bundle':
             bundle_importer = self.component(usage='product.bundle.importer')
             bundle_importer.run(binding, self.magento_record)
+        self._import_stock_warehouse()
 
     def _preprocess_magento_record(self):
         for attr in self.magento_record.get('custom_attributes', []):

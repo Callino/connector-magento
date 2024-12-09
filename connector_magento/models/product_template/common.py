@@ -213,16 +213,19 @@ class ProductTemplate(models.Model):
         })
         return action
 
-    @api.model
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
         # Avoid to create variants
-        if vals.get('auto_create_variants', True):
-            # If auto create is true - then create the normal way
-            return super(ProductTemplate, self).create(vals)
-        # Else avoid creating the variants
-        me = self.with_context(create_product_product=True)
-
-        return super(ProductTemplate, me).create(vals)
+        products = self.env['product.template']
+        for vals in vals_list:
+            if vals.get('auto_create_variants', True):
+                # If auto create is true - then create the normal way
+                products += super(ProductTemplate, self).create([vals])
+            else:
+                # Else avoid creating the variants
+                me = self.with_context(create_product_product=True)
+                products += super(ProductTemplate, me).create([vals])
+        return products
 
     # @api.multi
     def _create_variant_ids(self):
