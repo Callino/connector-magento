@@ -123,6 +123,11 @@ class MagentoProductProduct(models.Model):
         inverse_name='magento_product_binding_id',
         string="Magento Stock Items",
     )
+    magento_status = fields.Selection([
+        ('2', 'Disabled'),
+        ('1', 'Enabled'),
+        ('0', 'Unknown'),
+    ], default='1', string="Status")
 
 
      # @api.multi

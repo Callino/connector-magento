@@ -215,7 +215,10 @@ class ProductImportMapper(Component):
         and set active flag in OpenERP
         status == 1 in Magento means active.
         Magento 2.x returns an integer, 1.x a string """
-        return {'active': (record.get('status') in (1, '1'))}
+        return {
+            'active': True,
+            'magento_status': str(record.get('status')),
+        }
 
     @mapping
     def price(self, record):
