@@ -561,6 +561,7 @@ class ProductImporter(Component):
     def _after_import(self, binding):
         """ Hook called at the end of the import """
         self._after_import_attributes(binding)
+        self._import_stock_warehouse()
         self._import_stock(binding)
         translation_importer = self.component(
             usage='translation.importer',
@@ -576,7 +577,6 @@ class ProductImporter(Component):
         if self.magento_record['type_id'] == 'bundle':
             bundle_importer = self.component(usage='product.bundle.importer')
             bundle_importer.run(binding, self.magento_record)
-        self._import_stock_warehouse()
 
     def _preprocess_magento_record(self):
         for attr in self.magento_record.get('custom_attributes', []):
