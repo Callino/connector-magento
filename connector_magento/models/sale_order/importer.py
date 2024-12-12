@@ -580,11 +580,16 @@ class SaleOrderImporter(Component):
             customer_group = record.get('customer_group_id')
             if customer_group:
                 self._import_customer_group(customer_group)
-
+            country = self.env['res.country'].search([('code', '=', address['country_id'])])
             customer_record = {
                 'firstname': address['firstname'],
                 'middlename': address.get('middlename'),
                 'lastname': address['lastname'],
+                'street': ' '.join(address['street']),
+                'zip': address['postcode'],
+                'city': address['city'],
+                'country_id': country.id if country else False,
+                'phone': address.get('telephone'),
                 'prefix': address.get('prefix'),
                 'suffix': address.get('suffix'),
                 'email': record.get('customer_email'),

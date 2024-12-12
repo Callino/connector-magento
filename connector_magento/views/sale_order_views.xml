@@ -45,6 +45,8 @@
                 <field name="store_id"/>
                 <field name="storeview_id"/>
                 <field name="external_id"/>
+                <button name="sync_from_magento" string="From Magento" type="object"
+                                    class="oe_highlight"/>
             </tree>
         </field>
     </record>

@@ -198,7 +198,7 @@ class MagentoImporter(AbstractComponent):
                 return _('Record does no longer exist in Magento')
         self._preprocess_magento_record()
         skip = self._must_skip()    # pylint: disable=assignment-from-none
-        if skip:
+        if skip and not force:
             return skip
         if kwargs.get('binding'):
             binding = kwargs['binding']

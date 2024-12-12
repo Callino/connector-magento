@@ -113,13 +113,13 @@ class MagentoStockItemAdapter(Component):
     _apply_on = 'magento.stock.item'
 
     _magento_model = 'stockItems'
-    _magento2_model = 'stockItems/%(sku)s'
+    _magento2_model = 'stockItems'
     _magento2_name = 'stockItem'
     _magento2_search = 'stock/search'
     _magento2_key = 'id'
     _admin_path = '/{model}/edit/id/{id}'
 
-    def _write_url(self, id, binding):
+    def write(self, id, binding):
         if binding.product_type=='product':
             return "products/%(sku)s/stockItems/%(id)s" % {
                 'sku': binding.magento_product_binding_id.external_id,
@@ -131,7 +131,7 @@ class MagentoStockItemAdapter(Component):
                 'id': binding.external_id
             }
 
-    def _read_url(self, id, binding):
+    def read(self, id, binding):
         if binding.product_type=='product':
             return 'stockItems/%(sku)s' % {
                 'sku': binding.magento_product_binding_id.external_id,

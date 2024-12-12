@@ -59,6 +59,27 @@ class PartnerImportMapper(Component):
         # addresses on them
         return {'is_company': True}
 
+    @only_create
+    @mapping
+    def zip(self, record):
+        # partners are companies so we can bind
+        # addresses on them
+        return {'zip': record['zip']}
+
+    @only_create
+    @mapping
+    def city(self, record):
+        # partners are companies so we can bind
+        # addresses on them
+        return {'city': record['city']}
+
+    @only_create
+    @mapping
+    def phone(self, record):
+        # partners are companies so we can bind
+        # addresses on them
+        return {'phone': record['phone']}
+
     @mapping
     def names(self, record):
         """ Middlename not always present in Magento 2 """
@@ -67,6 +88,76 @@ class PartnerImportMapper(Component):
                                    record.get('middlename'),
                                    record['lastname']) if part]
         return {'name': ' '.join(parts)}
+
+    @mapping
+    def state(self, record):
+        if not record.get('region'):
+            return
+        state = self.env['res.country.state'].search(
+            [('name', '=ilike', record['region'])],
+            limit=1,
+        )
+        if state:
+            return {'state_id': state.id}
+
+    @mapping
+    def country(self, record):
+        if not record.get('country_id'):
+            return
+        country = self.env['res.country'].search(
+            [('code', '=', record['country_id'])],
+            limit=1,
+        )
+        if country:
+            return {'country_id': country.id}
+
+    @mapping
+    def street(self, record):
+        """ 'street' can be presented as a list in Magento2 """
+        value = record['street']
+        if not value:
+            return {}
+        if isinstance(value, list):
+            lines = value
+        else:
+            lines = [line.strip() for line in value.split('\n')
+                     if line.strip()]
+        if len(lines) == 1:
+            result = {'street': lines[0], 'street2': False}
+        elif len(lines) >= 2:
+            result = {'street': lines[0], 'street2': ' - '.join(lines[1:])}
+        else:
+            result = {}
+        return result
+
+    @mapping
+    def title(self, record):
+        """ Prefix is optionally present in Magento 2 """
+        prefix = record.get('prefix')
+        if not prefix:
+            return
+        title = self.env['res.partner.title'].search(
+            [('shortcut', '=ilike', prefix)],
+            limit=1
+        )
+        if not title:
+            title = self.env['res.partner.title'].create(
+                {'shortcut': prefix,
+                 'name': prefix,
+                 }
+            )
+        return {'title': title.id}
+
+    @mapping
+    def country_id(self, record):
+        if not record.get('country_id'):
+            return
+        country = self.env['res.country'].search(
+            [('id', '=', record['country_id'])],
+            limit=1,
+        )
+        if country:
+            return {'country_id': country.id}
 
     @mapping
     def customer_group_id(self, record):
