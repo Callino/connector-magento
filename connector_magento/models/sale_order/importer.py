@@ -505,6 +505,8 @@ class SaleOrderImporter(Component):
 
     def _after_import(self, binding):
         self._link_parent_orders(binding)
+        binding.odoo_id._compute_fiscal_position_id()
+        binding.odoo_id._recompute_taxes()
 
     def _get_storeview(self, record):
         """ Return the tax inclusion setting for the appropriate storeview """
