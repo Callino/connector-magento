@@ -9,7 +9,7 @@
                eval="[(4, ref('connector.group_connector_manager'))]"/>
 -->
         <field name="arch" type="xml">
-            <form string="Magento Product Category">
+            <form string="Magento Product Category" groups="connector.group_connector_manager">
                 <group>
                     <field name="name"/>
                     <field name="description"/>

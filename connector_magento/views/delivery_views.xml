@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="delivery.view_delivery_carrier_form" />
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Magento" name="magento">
+                <page string="Magento" name="magento" groups="connector.group_connector_manager">
                     <group name="magento_info">
                         <field name="magento_code"/>
                         <field name="magento_tracking_title"/>

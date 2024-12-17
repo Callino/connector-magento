@@ -9,10 +9,10 @@
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
                 <field name="categ_id" position="after">
-                    <field name="product_category_public_ids" widget="many2many_tags"/>
+                    <field name="product_category_public_ids" widget="many2many_tags" groups="connector.group_connector_manager"/>
                 </field>
                 <notebook position="inside">
-                    <page string="Magento Bindings">
+                    <page string="Magento Bindings" groups="connector.group_connector_manager">
                         <field name="magento_bind_ids" attrs="{'invisible': [('magento_bind_ids','=',False)]}"/>
                         <field name="magento_variant_bind_ids"
                                attrs="{'invisible': [('magento_variant_bind_ids','=',False)]}"/>

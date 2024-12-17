@@ -64,21 +64,21 @@ class PartnerImportMapper(Component):
     def zip(self, record):
         # partners are companies so we can bind
         # addresses on them
-        return {'zip': record['zip']}
+        return {'zip': record.get('zip', '')}
 
     @only_create
     @mapping
     def city(self, record):
         # partners are companies so we can bind
         # addresses on them
-        return {'city': record['city']}
+        return {'city': record.get('city', '')}
 
     @only_create
     @mapping
     def phone(self, record):
         # partners are companies so we can bind
         # addresses on them
-        return {'phone': record['phone']}
+        return {'phone': record.get('phone', '')}
 
     @mapping
     def names(self, record):
@@ -114,7 +114,7 @@ class PartnerImportMapper(Component):
     @mapping
     def street(self, record):
         """ 'street' can be presented as a list in Magento2 """
-        value = record['street']
+        value = record.get('street', '')
         if not value:
             return {}
         if isinstance(value, list):

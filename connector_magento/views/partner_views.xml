@@ -14,6 +14,7 @@
             </field>
             <page name="connector" position="attributes">
                 <attribute name="invisible">0</attribute>
+                <attribute name="groups">connector.group_connector_manager</attribute>
             </page>
             <page name="connector" position="inside">
                 <group string="Magento Bindings">
