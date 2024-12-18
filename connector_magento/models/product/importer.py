@@ -463,7 +463,7 @@ class ProductImporter(Component):
 
         :returns: None | str | unicode
         """
-        if self.magento_record['status'] == '2':
+        if self.magento_record['status'] == 2:
             return _('Produkt deaktiviert - daher ignoriert.')
         if self.magento_record['type_id'] == 'configurable':
             return _('The configurable product is not imported in Odoo, '
