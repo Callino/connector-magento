@@ -14,7 +14,7 @@ class ProductImporter(Component):
 
     def _import_stock(self, binding):
         super(ProductImporter, self)._import_stock(binding)
-        for source in self.env['magento.stock.warehouse'].search([
+        for source in self.env['magento.stock.warehouse'].sudo().search([
             ('mw_type', '=', 'msi'),
             ('backend_id', '=', binding.backend_id.id),
         ]):
