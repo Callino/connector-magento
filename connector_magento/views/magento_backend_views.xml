@@ -185,6 +185,8 @@
                                 <field name="account_analytic_id" groups="analytic.group_analytic_accounting"/>
                                 <field name="fiscal_position_id"/>
                                 <field name="default_gift_product_id"/>
+                                <field name="rounding_diff_account_id"/>
+                                <field name="rounding_diff_product_id"/>
                                 <field name="is_multi_company"/>
                                 <field name="product_synchro_strategy"/>
                                 <field name="product_export_strategy"/>
