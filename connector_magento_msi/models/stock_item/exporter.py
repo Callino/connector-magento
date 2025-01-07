@@ -16,9 +16,9 @@ class MagentoStockItemExporter(Component):
     _inherit = 'magento.stock.item.exporter'
     _apply_on = ['magento.stock.item']
 
-    def _update(self, data, storeview_code=None):
+    def _update(self, data):
         if not self.binding.magento_warehouse_id.mw_type == 'msi':
-            return super(MagentoStockItemExporter, self)._update(data, storeview_code)
+            return super(MagentoStockItemExporter, self)._update(self.binding)
         assert self.external_id
         # special check on data before export
         self._validate_update_data(data)

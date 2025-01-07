@@ -193,6 +193,11 @@ class MagentoBackend(models.Model):
         'The value can also be specified on website or the store or the '
         'store view.'
     )
+    default_gift_product_id = fields.Many2one(
+        'product.product',
+        string="Gift Product",
+        domain="[('type', '=', 'service')]"
+    )
     is_multi_company = fields.Boolean(
         string='Is Backend Multi-Company',
         help="If this flag is set, it is possible to choose warehouse at each "

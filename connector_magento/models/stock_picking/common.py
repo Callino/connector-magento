@@ -68,6 +68,12 @@ class StockPicking(models.Model):
     )
 
 
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    dropship_warehouse_id = fields.Many2one('stock.warehouse', string="Lager f. Magento Export bei Streckenlieferung")
+
+
 class StockPickingAdapter(Component):
     _name = 'magento.stock.picking.adapter'
     _inherit = 'magento.adapter'

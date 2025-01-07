@@ -7,6 +7,9 @@ import odoo
 from odoo import _
 from odoo.addons.component.core import Component
 from odoo.addons.queue_job.exception import NothingToDoJob
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MagentoPickingExporter(Component):
@@ -34,7 +37,7 @@ class MagentoPickingExporter(Component):
         """
         item_qty = {}
         # get product and quantities to ship from the picking
-        for line in binding.move_lines:
+        for line in binding.move_ids:
             sale_line = line.sale_line_id
             if not sale_line.magento_bind_ids:
                 continue
@@ -59,6 +62,14 @@ class MagentoPickingExporter(Component):
         """
         magento_shop = binding.sale_id.magento_bind_ids[0].store_id
         return magento_shop.send_picking_done_mail
+
+    def _update_picking_quantities(self, picking):
+        for line in picking.move_ids:
+            binding = line.product_id.magento_bind_ids.filtered(lambda mb: mb.backend_id == self.backend_record)
+            if not binding:
+                continue
+            for stock_item in binding.magento_stock_item_ids:
+                stock_item.export_record(stock_item.backend_id)
 
     def run(self, binding):
         """
@@ -99,16 +110,46 @@ class MagentoPickingExporter(Component):
                 raise
 
         else:  # Magento 2.x
+            picking = self.model.browse(binding.id)
+            self._update_picking_quantities(picking)
+            _logger.debug("Picking and binding %s / %s" % (picking, binding))
+            if picking.external_id:
+                return _('Already exported')
+            lines_info = self._get_lines_info(picking)
+            if not lines_info:
+                raise NothingToDoJob(_('Canceled: the delivery order does not '
+                                       'contain lines from the original '
+                                       'sale order.'))
             arguments = {
+                'orderId': picking.sale_id.magento_bind_ids[0].external_id,
+                'notify': True if picking.carrier_id and picking.carrier_id.magento_export_tracking and picking.carrier_tracking_ref else False,
                 'items': [{
                     'order_item_id': key,
                     'qty': val,
-                } for key, val in get_lines_info().items()]
+                } for key, val in lines_info.items()],
+                "arguments": {
+                    "extension_attributes": {
+                        "source_code": picking.odoo_id.picking_type_id.warehouse_id.magento_bind_ids[
+                            0].external_id if picking.odoo_id.picking_type_id.warehouse_id else
+                        picking.odoo_id.picking_type_id.sudo().dropship_warehouse_id.magento_bind_ids[0].external_id,
+                    }
+                }
             }
-            external_id = self.backend_adapter._call(
-                'order/%s/ship' %
-                binding.sale_id.magento_bind_ids[0].external_id,
+            if picking.carrier_id and picking.carrier_id.magento_export_tracking and picking.carrier_tracking_ref:
+                arguments.update({
+                    'tracks': [
+                        {
+                            "track_number": picking.carrier_tracking_ref,
+                            "title": picking.carrier_id.magento_tracking_title if picking.carrier_id else 'Custom',
+                            "carrier_code": "custom"
+                        }
+                    ]
+                })
+            magento_id = self.backend_adapter._call(
+                'order/%s/ship' % picking.sale_id.magento_bind_ids[0].external_id,
                 arguments, http_method='post')
+            self.binder.bind(magento_id, binding)
+            self._update_picking_quantities(picking)
 
         self.binder.bind(external_id, binding)
         # ensure that we store the external ID

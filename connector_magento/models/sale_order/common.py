@@ -140,7 +140,7 @@ class SaleOrder(models.Model):
 
     # @api.multi
     def copy(self, default=None):
-        self_copy = self.with_context(__copy_from_quotation=True)
+        self_copy = self.with_context()
         new = super(SaleOrder, self_copy).copy(default=default)
         self_copy._magento_link_binding_of_copy(new)
         return new

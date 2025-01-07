@@ -179,18 +179,47 @@ class SaleOrderImportMapper(Component):
 
     def _add_gift_certificate_line(self, map_record, values):
         record = map_record.source
-        # if gift_cert_amount is zero or doesn't exist
-        if not record.get('gift_cert_amount'):
+        if 'discount_amount' not in record:
             return values
-        amount = float(record['gift_cert_amount'])
-        if amount == 0.0:
+        # if gift_cert_amount is zero
+        if not record.get('discount_amount'):
             return values
-        line_builder = self.component(usage='order.line.builder.gift')
-        line_builder.price_unit = amount
-        if 'gift_cert_code' in record:
-            line_builder.gift_code = record['gift_cert_code']
-        line = (0, 0, line_builder.get_line())
-        values['order_line'].append(line)
+        if not self.backend_record.default_gift_product_id:
+            return values
+        # check if there is an discount_percent in the order items - if it is set - then it is a percentual discount and already registered on the lines
+        found_percent = False
+        for item in record['orig_items']:
+            if 'discount_percent' in item and item['discount_percent'] > 0:
+                found_percent = True
+        if found_percent:
+            return values
+        amount = abs(float(record['discount_amount']))
+        name = 'Gift'
+        if 'discount_description' in record:
+            name = record['discount_description']
+        if 'discount_code' in record:
+            name = "%s (%s)" % (name, record['discount_code'],)
+        tax_id = None
+        if 'discount_tax_compensation_amount' in record and record.get('discount_tax_compensation_amount', 0) > 0:
+            # It seems that the discount does have a tax rate applied
+            tax = round((amount / (amount - record.get('discount_tax_compensation_amount', 0)) - 1) * 100)
+            # Search for tax rate in odoo
+            warehouse = self.options.storeview.warehouse_id
+            company_id = warehouse.company_id
+            tax_id = self.env['account.tax'].search([
+                ('company_id', '=', company_id.id),
+                ('type_tax_use', '=', 'sale'),
+                ('amount', '=', tax),
+                ('amount_type', '=', 'percent')
+            ], limit=1)
+        line = {
+            'product_id': self.backend_record.default_gift_product_id.id,
+            'price_unit': amount * -1,
+            'name': name,
+            'product_uom_qty': 1,
+            'tax_id': [(4, tax_id.id)] if tax_id else None,
+        }
+        values['order_line'].append((0, 0, line))
         return values
 
     def _add_gift_cards_line(self, map_record, values):
@@ -401,7 +430,7 @@ class SaleOrderImporter(Component):
         """
         child_items = {}  # key is the parent item id
         top_items = []
-
+        resource['orig_items'] = resource['items']
         # Group the childs with their parent
         for item in resource['items']:
             if item.get('parent_item_id'):
@@ -738,6 +767,13 @@ class SaleOrderLineImportMapper(Component):
 
     @mapping
     def discount_amount(self, record):
+        if record.get('parent_item'):
+            # Use parent item here if it is set
+            record = record.get('parent_item')
+        if 'discount_percent' in record:
+            return {
+                'discount': record['discount_percent']
+            }
         discount_value = float(record.get('discount_amount') or 0)
         if self.options.tax_include:
             row_total = float(record.get('row_total_incl_tax') or 0)
@@ -745,10 +781,7 @@ class SaleOrderLineImportMapper(Component):
             row_total = float(record.get('row_total') or 0)
         discount = 0
         if discount_value > 0 and row_total > 0:
-            if self.collection.version == '1.7':
-                discount = 100 * discount_value / row_total
-            else:
-                discount = 100 * discount_value / (row_total + discount_value)
+            discount = 100 * discount_value / row_total
         result = {'discount': discount}
         return result
 
