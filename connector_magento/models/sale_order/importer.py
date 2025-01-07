@@ -526,6 +526,18 @@ class SaleOrderImporter(Component):
                 parent_binding.write({'canceled_in_backend': True})
             current_binding = parent_binding
 
+    def _import_payment(self, binding):
+        payment = self.magento_record['payment']
+        if payment.get('amount_paid', 0.0) == 0.0:
+            # No payment !
+            return
+        binder = self.binder_for('magento.account.payment')
+        payment_binding = binder.to_internal(payment['entity_id'])
+        if not payment_binding:
+            importer = self.component(usage='record.importer',
+                                      model_name='magento.account.payment')
+            importer.run_with_data(payment, order_binding=binding)
+
     def _create(self, data):
         binding = super(SaleOrderImporter, self)._create(data)
         if binding.fiscal_position_id:
@@ -536,6 +548,7 @@ class SaleOrderImporter(Component):
         self._link_parent_orders(binding)
         binding.odoo_id._compute_fiscal_position_id()
         binding.odoo_id._recompute_taxes()
+        self._import_payment(binding)
 
     def _get_storeview(self, record):
         """ Return the tax inclusion setting for the appropriate storeview """
@@ -669,7 +682,7 @@ class SaleOrderImporter(Component):
         addresses_defaults = {'parent_id': partner.id,
                               'magento_partner_id': partner_binding.id,
                               'email': record.get('customer_email', False),
-                              'active': False,
+                              'active': True,
                               'is_magento_order_address': True}
 
         addr_mapper = self.component(usage='import.mapper',

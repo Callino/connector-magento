@@ -48,3 +48,4 @@
 "access_magento_binding_read","access_magento_binding_read connector manager","model_magento_binding_backend_read","connector.group_connector_manager",1,1,1,1
 "access_magento_stock_item","access_magento_stock_item connector manager","model_magento_stock_item","connector.group_connector_manager",1,1,1,1
 "access_magento_stock_warehouse","access_magento_stock_warehouse connector manager","model_magento_stock_warehouse","connector.group_connector_manager",1,1,1,1
+"access_magento_account.payment","access_magento_account_payment connector manager","model_magento_account_payment","connector.group_connector_manager",1,1,1,1

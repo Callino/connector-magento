@@ -40,6 +40,7 @@ class MagentoModelBinder(Component):
         'magento.product.attribute.value',
         'magento.product.template',
         'magento.product.template.attribute.line',
+        'magento.account.payment',
     ]
 
     def to_internal(self, external_id, unwrap=False, external_field=None):

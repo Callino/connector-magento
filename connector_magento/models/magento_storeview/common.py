@@ -76,7 +76,7 @@ class MagentoStoreview(models.Model):
             backend = storeview.with_user(user).backend_id
             if storeview.import_orders_from_date:
                 from_string = fields.Datetime.from_string
-                from_date = from_string(storeview.import_orders_from_date)
+                from_date = from_string(storeview.import_orders_from_date) - timedelta(hours=1)
             else:
                 from_date = None
 

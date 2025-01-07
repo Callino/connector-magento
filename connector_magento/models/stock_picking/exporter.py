@@ -99,6 +99,7 @@ class MagentoPickingExporter(Component):
                                  "found: %s" % picking_method)
             try:
                 external_id = self.backend_adapter.create(*args)
+                self.binder.bind(external_id, binding)
             except xmlrpc.client.Fault as err:
                 # When the shipping is already created on Magento, it returns:
                 # <Fault 102: u"Impossible de faire
@@ -150,8 +151,6 @@ class MagentoPickingExporter(Component):
                 arguments, http_method='post')
             self.binder.bind(magento_id, binding)
             self._update_picking_quantities(picking)
-
-        self.binder.bind(external_id, binding)
         # ensure that we store the external ID
         if not odoo.tools.config['test_enable']:
             # pylint: disable=invalid-commit
