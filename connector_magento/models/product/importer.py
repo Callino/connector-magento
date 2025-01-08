@@ -505,6 +505,7 @@ class ProductImporter(Component):
         # enable/disable reordering rules before updating the product as Odoo
         # do not allow to disable a product while having active reordering
         # rules on it
+        return True  # Do not update products, odoo has master data
         if 'binding_template_id' in kwargs:
             data['product_tmpl_id'] = kwargs['binding_template_id'].odoo_id.id
             # data['magento_configurable_id'] = kwargs['_binding_template_id'].id
