@@ -35,8 +35,14 @@ class AccountPaymentImportMapper(Component):
     def rounding_difference(self, record):
         if 0.01 > abs(record['amount_paid'] - self.options.order_binding.amount_total) > 0 and self.backend_record.rounding_diff_account_id:
             return {
-               'payment_difference_handling': 'reconcile',
-               'writeoff_account_id': self.backend_record.rounding_diff_account_id.id
+                'payment_difference_handling': 'reconcile',
+                'writeoff_account_id': self.backend_record.rounding_diff_account_id.id,
+                'write_off_line_vals' : [{
+                    'name': self.backend_record.rounding_diff_account_id.name,
+                    'account_id': self.backend_record.rounding_diff_account_id.id,
+                    'partner_id': self.options.order_binding.partner_id.id,
+                    'balance': abs(record['amount_paid'] - self.options.order_binding.amount_total),
+                }]
             }
 
     @ mapping

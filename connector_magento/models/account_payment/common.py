@@ -3,7 +3,7 @@
 
 import logging
 import xmlrpc.client
-from odoo import models, fields
+from odoo import models, fields, api
 
 _logger = logging.getLogger(__name__)
 
@@ -78,6 +78,22 @@ class MagentoAccountPayment(models.Model):
     payment_difference_handling = fields.Selection([('open', 'Keep open'), ('reconcile', 'Mark invoice as fully paid')],
                                                    default='open', string="Payment Difference Handling")
     writeoff_account_id = fields.Many2one('account.account', string="Difference Account")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        # OVERRIDE
+        write_off_line_vals_list = []
+
+        for vals in vals_list:
+            # Hack to add a custom write-off line.
+            write_off_line_vals_list.append(vals.pop('write_off_line_vals', None))
+
+            # Force the move_type to avoid inconsistency with residual 'default_move_type' inside the context.
+            vals['move_type'] = 'entry'
+
+        return super(MagentoAccountPayment, self.with_context(is_payment=True)) \
+            .create(vals_list) \
+            .with_context(is_payment=False)
 
 
 class AccountPayment(models.Model):
