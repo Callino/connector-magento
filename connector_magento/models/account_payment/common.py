@@ -75,6 +75,9 @@ class MagentoAccountPayment(models.Model):
     amount_ordered = fields.Float('Amount Ordered', default=0.0)
     amount_paid = fields.Float('Amount Paid', default=0.0)
     last_trans_id = fields.Char('Transaktion ID')
+    payment_difference_handling = fields.Selection([('open', 'Keep open'), ('reconcile', 'Mark invoice as fully paid')],
+                                                   default='open', string="Payment Difference Handling")
+    writeoff_account_id = fields.Many2one('account.account', string="Difference Account")
 
 
 class AccountPayment(models.Model):
