@@ -28,7 +28,7 @@ class MagentoStockMoveListener(Component):
         if not record.state == 'done':
             return
         for binding in record.product_id.magento_bind_ids:
-            for stock_item in binding.magento_stock_item_ids:
+            for stock_item in binding.sudo().magento_stock_item_ids:
                 stock_item._compute_qty()
                 if stock_item.should_export:
                     stock_item.with_delay(identity_key=identity_exact, priority=5).export_record(stock_item.backend_id)
